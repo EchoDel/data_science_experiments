@@ -12,7 +12,7 @@ def load_masks(image_id):
 def load_bbox(image_id):
     annIds = coco.getAnnIds(imgIds=image_id, iscrowd=None)
     anns = coco.loadAnns(annIds)
-    return [ann['bbox'] for ann in anns]
+    return [size_bbox_to_points(ann['bbox']) for ann in anns]
 
 def load_annotations(image_id):
     annIds = coco.getAnnIds(imgIds=image_id, iscrowd=None)
