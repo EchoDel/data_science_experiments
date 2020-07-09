@@ -17,7 +17,7 @@ def load_bbox(image_id):
 def load_annotations(image_id):
     annIds = coco.getAnnIds(imgIds=image_id, iscrowd=None)
     anns = coco.loadAnns(annIds)
-    return [ann['category_id'] for ann in anns]
+    return [coco.loadCats(ann['category_id'])[0]["name"] for ann in anns]
 
 
 
