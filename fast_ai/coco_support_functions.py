@@ -22,6 +22,16 @@ def switch_list(input_list, n):
         )
     return input_list
 
+def reorder_list(input_list, order):
+    return [input_list[x] for x in order]
+
+def size_bbox_to_points(input_list):
+    output_list = input_list[0:2]
+    output_list.append(input_list[0] + input_list[2])
+    output_list.append(input_list[1] + input_list[3])
+
+    return output_list
+
 def filter_coco_dataset(folder, classes=None, mode='train'):
     # initialize COCO api for instance annotations
     annFile = '{}/annotations/instances_{}.json'.format(folder, mode)
