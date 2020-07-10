@@ -22,7 +22,7 @@ def load_annotations(image_id):
 
 
 folder = Path('../coco_image/coco')
-mode = 'val2017'
+mode = 'train2017'
 classes = None
 
 img_ids, dataset_size, coco = filter_coco_dataset(folder, classes, mode)
