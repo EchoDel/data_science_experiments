@@ -28,33 +28,39 @@ classes = None
 img_ids, dataset_size, coco = filter_coco_dataset(folder, classes, mode)
 
 
-
 def get_train_imgs(noop): return img_ids
+
 
 getters = [lambda o: folder / "images" / (str(o).zfill(12) + ".jpg"),
            lambda o: load_bbox(o),
            lambda o: load_annotations(o)]
 
 item_tfms = [Resize(224)]
-    batch_tfms = [Rotate(), Flip(), Dihedral(), Normalize.from_stats(*imagenet_stats)]
+batch_tfms = [Rotate(), Flip(), Dihedral(), Normalize.from_stats(*imagenet_stats)]
 
+invalid_images = []
+for x in range(0,len(img_ids)):
+    img_ids_short = [img_ids[x]] * 100
 
-#MaskBlock
+    #MaskBlock
 
-images = DataBlock(
-    blocks=(ImageBlock, BBoxBlock, BBoxLblBlock),
-    get_items=get_train_imgs,
-    splitter=TrainTestSplitter(valid_pct=0.2, seed=42),
-    getters=getters,
-    item_tfms=Resize(256, ResizeMethod.Squish),
+    images = DataBlock(
+        blocks=(ImageBlock, BBoxBlock, BBoxLblBlock),
+        get_items=get_train_imgs,
+        splitter=TrainTestSplitter(valid_pct=0.2, seed=42),
+        getters=getters,
+        item_tfms=Resize(256, ResizeMethod.Squish),
         n_inp=1,
         batch_tfms=batch_tfms)
 
+    try:
+        dls = images.dataloaders("")
 
-dls = images.dataloaders("")
-
-dls.c = 1
-dls.show_batch()
+        dls.c = 1
+        dls.show_batch()
+        plt.close()
+    except Exception:
+        invalid_images.append(img_ids[x])
 
 
 
