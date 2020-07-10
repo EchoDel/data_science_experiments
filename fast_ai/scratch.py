@@ -27,7 +27,6 @@ classes = None
 
 img_ids, dataset_size, coco = filter_coco_dataset(folder, classes, mode)
 
-img_ids = img_ids[1:100]
 
 
 def get_train_imgs(noop): return img_ids
