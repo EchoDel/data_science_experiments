@@ -36,7 +36,7 @@ getters = [lambda o: folder / "images" / (str(o).zfill(12) + ".jpg"),
            lambda o: load_annotations(o)]
 
 item_tfms = [Resize(224)]
-#batch_tfms = [Rotate(), Flip(), Dihedral(), Normalize.from_stats(*imagenet_stats)]
+    batch_tfms = [Rotate(), Flip(), Dihedral(), Normalize.from_stats(*imagenet_stats)]
 
 
 #MaskBlock
@@ -47,8 +47,8 @@ images = DataBlock(
     splitter=TrainTestSplitter(valid_pct=0.2, seed=42),
     getters=getters,
     item_tfms=Resize(256, ResizeMethod.Squish),
-    n_inp = 1)
-#    batch_tfms=batch_tfms)
+        n_inp=1,
+        batch_tfms=batch_tfms)
 
 
 dls = images.dataloaders("")
