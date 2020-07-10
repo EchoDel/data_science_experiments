@@ -63,7 +63,7 @@ dls.show_batch()
 [x for x in load_annotations(508602)]
 
 
-import skimage.io as io
+import skimage.io as IO
 import matplotlib.pyplot as plt
 
 folder = Path('../coco_image/coco')
@@ -74,7 +74,7 @@ images, dataset_size, coco = filter_coco_dataset(folder, classes, mode)
 img = coco.loadImgs(6818)[0]
 
 # load and display instance annotations
-I = io.imread(img['coco_url'])
+I = IO.imread(img['coco_url'])
 plt.imshow(I); plt.axis('off')
 annIds = coco.getAnnIds(imgIds=img['id'], iscrowd=None)
 anns = coco.loadAnns(annIds)
