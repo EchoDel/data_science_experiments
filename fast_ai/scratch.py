@@ -99,6 +99,16 @@ learn = cnn_learner(dls, resnet18, metrics=error_rate)
 learn.fine_tune(4)
 
 
+image_id = 124983
+
+
+[x for x in load_masks(image_id)]
+[x for x in load_bbox_annotations(image_id)]
+[x for x in load_bbox(image_id)]
+
+
+
+
 import skimage.io as IO
 import matplotlib.pyplot as plt
 
@@ -107,7 +117,7 @@ mode = 'val2017'
 classes = None
 images, dataset_size, coco = filter_coco_dataset(folder, classes, mode)
 
-img = coco.loadImgs(6818)[0]
+img = coco.loadImgs(image_id)[0]
 
 # load and display instance annotations
 I = IO.imread(img['coco_url'])
