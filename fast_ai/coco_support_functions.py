@@ -1,6 +1,6 @@
 from pycocotools.coco import COCO
 import random
-from fastai.vision import *
+from fastai2.vision import *
 
 
 def unique_list(input_data: list):
