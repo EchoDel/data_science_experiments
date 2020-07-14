@@ -95,8 +95,8 @@ for x in range(0,len(img_ids)):
 
 
 
-[len(x) for x in load_masks(508602)]
-[x for x in load_annotations(508602)]
+learn = cnn_learner(dls, resnet18, metrics=error_rate)
+learn.fine_tune(4)
 
 
 import skimage.io as IO
