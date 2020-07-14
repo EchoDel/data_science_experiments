@@ -36,6 +36,7 @@ def load_categories(noop):
 
 
 def load_bbox(image_id):
+    print(image_id)
     annIds = coco.getAnnIds(imgIds=image_id, iscrowd=None)
     anns = coco.loadAnns(annIds)
     return [size_bbox_to_points(ann['bbox']) for ann in anns]
