@@ -1,6 +1,8 @@
 from pycocotools.coco import COCO
 import random
-from fastai2.vision import *
+from fast_ai.coco_support_functions import *
+from fastai2.vision.all import *
+import numpy as np
 
 
 def unique_list(input_data: list):
@@ -61,10 +63,65 @@ def filter_coco_dataset(folder, classes=None, mode='train'):
     return img_ids, dataset_size, coco
 
 
+class MaskCoco:
+    def load_masks(self, image_id):
+        print(image_id)
+        annIds = self.coco.getAnnIds(imgIds=image_id, iscrowd=None)
+        anns = self.coco.loadAnns(annIds)
+        cats = self.coco.getCatIds()
+
+        if len(anns) == 0:
+            shape = (256, 256)
+        else:
+            shape = self.coco.annToMask(anns[0]).shape
+        base_mask = np.zeros((shape[0], shape[1]))
+        masks = []
+        for category in cats:
+            annotation_short_list = [x for x in anns if x["category_id"] == category]
+            if len(annotation_short_list) > 1:
+                mask_list = [self.coco.annToMask(ann) for ann in annotation_short_list]
+                mask = base_mask
+                for x in mask_list:
+                    np.maximum(x, mask)
+            else:
+                mask = base_mask
+            mask = self.resize_method(Image.fromarray(mask))
+            mask = np.array(mask)
+            masks.append(mask)
+
+        return masks
+
+    def load_categories(self, noop):
+        return [cat["name"] for cat in self.coco.loadCats(self.coco.getCatIds())]
+
+    def get_image_ids(self):
+        return self.img_ids
+
+    def __init__(self, folder, classes, mode, resize_method):
+        self.img_ids, self.dataset_size, self.coco = \
+            filter_coco_dataset(folder, classes, mode)
+
+        self.resize_method = resize_method
 
 
+class BBoxCoco:
+    def load_bbox(self, image_id):
+        print(image_id)
+        annIds = self.coco.getAnnIds(imgIds=image_id, iscrowd=None)
+        anns = self.coco.loadAnns(annIds)
+        return [size_bbox_to_points(ann['bbox']) for ann in anns]
 
+    def load_bbox_annotations(self, image_id):
+        annIds = self.coco.getAnnIds(imgIds=image_id, iscrowd=None)
+        anns = self.coco.loadAnns(annIds)
+        cat_name = [self.coco.loadCats(ann['category_id'])[0]["name"] for ann in anns]
+        cat_id = [ann['category_id'] for ann in anns]
+        return cat_id
 
+    def get_image_ids(self):
+        return self.img_ids
 
-
+    def __init__(self, folder, classes, mode):
+        self.img_ids, self.dataset_size, self.coco = \
+            filter_coco_dataset(folder, classes, mode)
 
