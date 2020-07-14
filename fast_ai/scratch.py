@@ -69,29 +69,26 @@ item_tfms = [resize_method]
 batch_tfms = [Rotate(), Flip(), Dihedral(), Normalize.from_stats(*imagenet_stats)]
 
 invalid_images = []
-for x in range(0,len(img_ids)):
-    img_ids_short = [img_ids[x]] * 100
 
-    #MaskBlock
 
-    images = DataBlock(
-        blocks=(ImageBlock, MaskBlock, AddMaskCodes),
-        get_items=get_train_imgs,
-        splitter=TrainTestSplitter(valid_pct=0.2, seed=42),
-        getters=getters,
-        item_tfms=item_tfms,
-        n_inp=1,
-        batch_tfms=batch_tfms)
+images = DataBlock(
+    blocks=(ImageBlock, MaskBlock, AddMaskCodes),
+    get_items=get_train_imgs,
+    splitter=TrainTestSplitter(valid_pct=0.2, seed=42),
+    getters=getters,
+    item_tfms=item_tfms,
+    n_inp=1,
+    batch_tfms=batch_tfms)
 
-    try:
-        dls = images.dataloaders("")
+try:
+    dls = images.dataloaders("", num_workers=0)
 
-        dls.c = 1
-        dls.show_batch()
-        break
-        plt.close()
-    except Exception:
-        invalid_images.append(img_ids[x])
+    dls.c = 1
+    dls.show_batch()
+    break
+    plt.close()
+except Exception:
+    invalid_images.append(img_ids[x])
 
 
 
