@@ -5,6 +5,7 @@ from pathlib import Path
 
 
 def load_masks(image_id):
+    print(image_id)
     annIds = coco.getAnnIds(imgIds=image_id, iscrowd=None)
     anns = coco.loadAnns(annIds)
     cats = coco.getCatIds()
