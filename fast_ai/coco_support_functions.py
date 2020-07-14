@@ -109,14 +109,20 @@ class BBoxCoco:
         print(image_id)
         annIds = self.coco.getAnnIds(imgIds=image_id, iscrowd=None)
         anns = self.coco.loadAnns(annIds)
-        return [size_bbox_to_points(ann['bbox']) for ann in anns]
+        if len(anns) ==0:
+            return [0, 0, 0, 0]
+        else:
+            return [size_bbox_to_points(ann['bbox']) for ann in anns]
 
     def load_bbox_annotations(self, image_id):
         annIds = self.coco.getAnnIds(imgIds=image_id, iscrowd=None)
         anns = self.coco.loadAnns(annIds)
         cat_name = [self.coco.loadCats(ann['category_id'])[0]["name"] for ann in anns]
         cat_id = [ann['category_id'] for ann in anns]
-        return cat_id
+        if len(cat_id)==0:
+            return [0]
+        else:
+            return cat_id
 
     def get_image_ids(self):
         return self.img_ids
