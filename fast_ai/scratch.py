@@ -50,7 +50,7 @@ def load_bbox_annotations(image_id):
 
 
 folder = Path('../coco_image/coco')
-mode = 'train2017'
+mode = 'val2017'
 classes = None
 
 img_ids, dataset_size, coco = filter_coco_dataset(folder, classes, mode)
