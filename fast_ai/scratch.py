@@ -7,7 +7,28 @@ from pathlib import Path
 def load_masks(image_id):
     annIds = coco.getAnnIds(imgIds=image_id, iscrowd=None)
     anns = coco.loadAnns(annIds)
-    return [coco.annToMask(ann) for ann in anns]
+    cats = coco.getCatIds()
+
+    if len(anns) == 0:
+        shape = (256,256)
+    else:
+        shape = coco.annToMask(anns[0]).shape
+    base_mask = np.zeros((shape[0], shape[1]))
+    masks = []
+    for category in cats:
+        annotation_short_list = [x for x in anns if x["category_id"] == category]
+        if len(annotation_short_list) > 1:
+            mask_list = [coco.annToMask(ann) for ann in annotation_short_list]
+            mask = base_mask
+            for x in mask_list:
+                np.maximum(x, mask)
+        else:
+            mask = base_mask
+        mask = resize_method(Image.fromarray(mask))
+        mask = np.array(mask)
+        masks.append(mask)
+
+    return masks
 
 def load_bbox(image_id):
     annIds = coco.getAnnIds(imgIds=image_id, iscrowd=None)
