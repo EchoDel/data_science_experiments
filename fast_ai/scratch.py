@@ -30,6 +30,10 @@ def load_masks(image_id):
 
     return masks
 
+def load_categories(noop):
+    return [cat["name"] for cat in coco.loadCats(coco.getCatIds())]
+
+
 def load_bbox(image_id):
     annIds = coco.getAnnIds(imgIds=image_id, iscrowd=None)
     anns = coco.loadAnns(annIds)
