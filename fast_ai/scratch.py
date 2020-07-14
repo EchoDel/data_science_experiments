@@ -59,36 +59,54 @@ img_ids, dataset_size, coco = filter_coco_dataset(folder, classes, mode)
 def get_train_imgs(noop): return img_ids
 
 
-getters = [lambda o: folder / "images" / (str(o).zfill(12) + ".jpg"),
+getters_mask = [lambda o: folder / "images" / (str(o).zfill(12) + ".jpg"),
            lambda o: load_masks(o),
            lambda o: load_categories(o)]
 
 resize_method = Resize(256, ResizeMethod.Squish)
-
 item_tfms = [resize_method]
 batch_tfms = [Rotate(), Flip(), Dihedral(), Normalize.from_stats(*imagenet_stats)]
 
-invalid_images = []
-
-
-images = DataBlock(
+images_mask = DataBlock(
     blocks=(ImageBlock, MaskBlock, AddMaskCodes),
     get_items=get_train_imgs,
     splitter=TrainTestSplitter(valid_pct=0.2, seed=42),
-    getters=getters,
+    getters=getters_mask,
     item_tfms=item_tfms,
     n_inp=1,
     batch_tfms=batch_tfms)
 
-try:
-    dls = images.dataloaders("", num_workers=0)
 
-    dls.c = 1
-    dls.show_batch()
-    break
-    plt.close()
-except Exception:
-    invalid_images.append(img_ids[x])
+dls = images_mask.dataloaders("", num_workers=0)
+
+dls.c = 20
+dls.show_batch()
+plt.close()
+
+
+# bboxes
+getters_bbox = [lambda o: folder / "images" / (str(o).zfill(12) + ".jpg"),
+               lambda o: load_bbox(o),
+               lambda o: load_bbox_annotations(o)]
+
+images_mask = DataBlock(
+    blocks=(ImageBlock, BBoxBlock, BBoxLblBlock),
+    get_items=get_train_imgs,
+    splitter=TrainTestSplitter(valid_pct=0.2, seed=42),
+    getters=getters_bbox,
+    item_tfms=item_tfms,
+    n_inp=1,
+    batch_tfms=batch_tfms)
+
+
+dls = images_mask.dataloaders("", num_workers=0)
+
+dls.c = 1
+dls.show_batch()
+plt.close()
+
+
+
 
 
 
