@@ -86,6 +86,7 @@ image_id = 124983
 
 
 [x for x in load_masks(image_id)]
+[x for x in load_categories(image_id)]
 [x for x in load_bbox_annotations(image_id)]
 [x for x in load_bbox(image_id)]
 
