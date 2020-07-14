@@ -127,5 +127,3 @@ anns = coco.loadAnns(annIds)
 coco.showAnns(anns)
 plt.show()
 
-
-load_bbox(6818)
