@@ -78,17 +78,17 @@ plt.close()
 
 
 
-learn = cnn_learner(dls, resnet18, metrics=error_rate)
+learn = cnn_learner(dls, resnet18, metrics=accuracy)
 learn.fine_tune(4)
 
 
-image_id = 124983
+image_id = 312549
 
 
 [x for x in load_masks(image_id)]
 [x for x in load_categories(image_id)]
-[x for x in load_bbox_annotations(image_id)]
-[x for x in load_bbox(image_id)]
+[x for x in coco_bbox.load_bbox_annotations(image_id)]
+[x for x in coco_bbox.load_bbox(image_id)]
 
 
 
