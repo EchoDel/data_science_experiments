@@ -4,7 +4,7 @@ import numpy_indexed as npi
 from pathlib import Path
 
 from scipy.io import wavfile as wav
-from scipy.fftpack import fft
+from scipy.signal import spectrogram
 
 
 def load_metadata(path: Path):
@@ -25,12 +25,10 @@ def load_sound_file(path):
     return data, rate
 
 
-def fft_creation(audio, sample_rate):
-    n = len(audio)
-    T = 1/sample_rate
-    yf = fft(audio)
-    xf = np.linspace(0.0, 1.0/(2.0*T), int(n/2))
-    yf = 2.0/n * np.abs(yf[:n//2])
-    np.vstack((xf, yf))
-    return np.vstack((xf, yf))
+def spectogram_creation(audio, sample_rate, samples):
+    return spectrogram(audio, sample_rate)
+
+
+
+
 
