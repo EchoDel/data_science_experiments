@@ -25,3 +25,12 @@ def load_sound_file(path):
     return data, rate
 
 
+def fft_creation(audio, sample_rate):
+    n = len(audio)
+    T = 1/sample_rate
+    yf = fft(audio)
+    xf = np.linspace(0.0, 1.0/(2.0*T), int(n/2))
+    yf = 2.0/n * np.abs(yf[:n//2])
+    np.vstack((xf, yf))
+    return np.vstack((xf, yf))
+
