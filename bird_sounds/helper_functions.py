@@ -33,7 +33,7 @@ def spectrogram_creation(audio, sample_rate, samples):
 
 
 class BirdCalls(torch.utils.data.IterableDataset):
-    def __init__(self, metadata_path, test, split_percentage=0.8, seed = 1994):
+    def __init__(self, metadata_path, test, split_percentage=0.8, seed=1994):
         super(BirdCalls).__init__()
         metadata = load_metadata(metadata_path)
         metadata = metadata.sample(100).reset_index(drop=True)
