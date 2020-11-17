@@ -78,3 +78,7 @@ class BirdCalls(torch.utils.data.IterableDataset):
         return iter(result)
 
 
+    def __len__(self):
+        self.metadata.shape[0]
+
+
