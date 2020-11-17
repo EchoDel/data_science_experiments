@@ -78,6 +78,4 @@ for epoch in range(epochs):
     running_loss = 0
     model.train()
 
-torch.save(model, 'aerialmodel.pth')
-
-
+torch.save(model, 'birdcalls.pth')
