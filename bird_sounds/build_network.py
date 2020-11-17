@@ -26,13 +26,13 @@ model = helper_functions.AlexNet(num_classes=2)
 device = 'cuda'
 
 
-
 train_loader = torch.utils.data.DataLoader(
     helper_functions.BirdCalls(Path('../bird_sounds/ff1010bird_metadata.csv'), False),
-    batch_size=3)
+    batch_size=1)
+
 test_loader = torch.utils.data.DataLoader(
     helper_functions.BirdCalls(Path('../bird_sounds/ff1010bird_metadata.csv'), True),
-    batch_size=3)
+    batch_size=1)
 
 optimizer = optim.Adam(model.parameters(), lr=0.003)
 criterion = nn.L1Loss()
