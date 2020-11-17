@@ -1,6 +1,5 @@
 import pandas as pd
 import numpy as np
-import numpy_indexed as npi
 from pathlib import Path
 
 from scipy.io import wavfile as wav
