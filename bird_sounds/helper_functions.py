@@ -74,7 +74,6 @@ class BirdCalls(torch.utils.data.IterableDataset):
             sample = sample[0:224, 0:224]
             sample = transforms.ToTensor()(sample)
             label = self.metadata.iloc[index, 1]
-            label = self.get_one_hot(label)
             result.append((sample, label))
 
         return iter(result)
