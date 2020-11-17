@@ -78,6 +78,13 @@ class BirdCalls(torch.utils.data.IterableDataset):
 
         return iter(result)
 
+    def __getitem__(self, index):
+        sample = self.load_spectrogram(index)
+        sample = sample[0:224, 0:224]
+        sample = transforms.ToTensor()(sample)
+        label = self.metadata.iloc[index, 1]
+        return sample, label
+
     def __len__(self):
         return self.metadata.shape[0]
 
