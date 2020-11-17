@@ -78,9 +78,8 @@ class BirdCalls(torch.utils.data.IterableDataset):
 
         return iter(result)
 
-
     def __len__(self):
-        self.metadata.shape[0]
+        return self.metadata.shape[0]
 
 
 class AlexNet(nn.Module):
