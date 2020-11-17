@@ -26,8 +26,8 @@ def load_sound_file(path):
     return data, rate
 
 
-def spectogram_creation(audio, sample_rate, samples):
-    return spectrogram(audio, sample_rate, nperseg=64)
+def spectrogram_creation(audio, sample_rate, samples):
+    return spectrogram(audio, sample_rate, nperseg=512)
 
 
 class BirdCalls(torch.utils.data.IterableDataset):
@@ -45,7 +45,6 @@ class BirdCalls(torch.utils.data.IterableDataset):
 
     def load_spectrogram(self, index):
         data, rate = load_sound_file(self.metadata.iloc[index, 2])
-        frequency_graph = spectogram_creation(data, rate, None)
         return frequency_graph[1]
 
     def __iter__(self):
@@ -57,6 +56,7 @@ class BirdCalls(torch.utils.data.IterableDataset):
 
 
 
+        frequency_graph = spectrogram_creation(data, rate, None)
 
 
 
