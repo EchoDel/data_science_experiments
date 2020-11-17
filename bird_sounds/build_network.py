@@ -34,7 +34,7 @@ test_loader = torch.utils.data.DataLoader(
     helper_functions.BirdCalls(Path('../bird_sounds/ff1010bird_metadata.csv'), True),
     batch_size=1)
 
-optimizer = optim.Adam(model.parameters(), lr=0.003)
+optimizer = optim.SGD(model.parameters(), lr=0.01, momentum=0.9)
 criterion = nn.L1Loss()
 model.to(device)
 
