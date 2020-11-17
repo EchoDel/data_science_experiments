@@ -53,8 +53,8 @@ class BirdCalls(torch.utils.data.IterableDataset):
         return frequency_graph[2]
 
     def get_one_hot(self, target):
-        a = np.zeros(self.classes + 1)
-        np.put(a, target, 1)
+        a = torch.zeros(self.classes + 1, dtype=torch.long)
+        a[target] = 1
         return a
 
     def __iter__(self):
