@@ -26,7 +26,8 @@ def load_sound_file(path):
 
 
 def spectogram_creation(audio, sample_rate, samples):
-    return spectrogram(audio, sample_rate)
+    return spectrogram(audio, sample_rate, nperseg=64)
+
 
 
 
