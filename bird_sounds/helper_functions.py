@@ -50,7 +50,7 @@ class BirdCalls(torch.utils.data.IterableDataset):
 
     def __iter__(self):
         iteration = self.iteration_number
-        sample = torch.utils.data.DataLoader(self.load_spectrogram(iteration))
+        sample = self.load_spectrogram(iteration)
         label = self.metadata.iloc[iteration, 1]
         self.iteration_number += 1
         yield (sample, label)
