@@ -41,22 +41,40 @@ class BirdCalls(torch.utils.data.IterableDataset):
             self.metadata = metadata[~msk].reset_index(drop=True)
         else:
             self.metadata = metadata[msk].reset_index(drop=True)
-        self.iteration_number = 0
+        self.start = 0
+        self.end = self.metadata.shape[0]
+        self.classes = max(metadata.iloc[:, 1])
 
     def load_spectrogram(self, index):
         data, rate = load_sound_file(self.metadata.iloc[index, 2])
-        return frequency_graph[1]
+        frequency_graph = spectrogram_creation(data, rate, None)
+        return frequency_graph[2]
+
+    def get_one_hot(self, target):
+        a = np.zeros(self.classes + 1)
+        np.put(a, target, 1)
+        return a
 
     def __iter__(self):
-        iteration = self.iteration_number
-        sample = self.load_spectrogram(iteration)
-        label = self.metadata.iloc[iteration, 1]
-        self.iteration_number += 1
-        yield (sample, label)
+        worker_info = torch.utils.data.get_worker_info()
+        if worker_info is None:  # single-process data loading, return the full iterator
+            iter_start = self.start
+            iter_end = self.end
+        else: # in a worker process  # split workload
+            per_worker = int(math.ceil((self.end - self.start) / float(worker_info.num_workers)))
+            worker_id = worker_info.id
+            iter_start = self.start + worker_id * per_worker
+            iter_end = min(iter_start + per_worker, self.end)
 
+        result = []
+        for index in range(iter_start, iter_end):
+            sample = self.load_spectrogram(index)
+            sample = sample[0:224, 0:224]
+            sample = transforms.ToTensor()(sample)
+            label = self.metadata.iloc[index, 1]
+            label = self.get_one_hot(label)
+            result.append((sample, label))
 
-
-        frequency_graph = spectrogram_creation(data, rate, None)
-
+        return iter(result)
 
 
