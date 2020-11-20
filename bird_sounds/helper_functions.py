@@ -2,12 +2,11 @@ import pandas as pd
 import numpy as np
 from pathlib import Path
 import math
+import librosa
 import torch
 import torch.nn as nn
+from sklearn.utils import resample
 from torchvision import transforms
-
-from scipy.io import wavfile as wav
-from scipy.signal import spectrogram
 
 
 def load_metadata(path: Path):
@@ -19,7 +18,7 @@ def load_metadata(path: Path):
 
 def load_sound_file(path):
     try:
-        rate, data = wav.read(path)
+        data, rate = librosa.load(path)
 
     except Exception as e:
         print(f"Reading of sample {path.name} failed")
@@ -28,8 +27,12 @@ def load_sound_file(path):
     return data, rate
 
 
-def spectrogram_creation(audio, sample_rate, samples):
-    return spectrogram(audio, sample_rate, nperseg=512)
+def spectrogram_creation(audio, sample_rate, n_mels):
+    n_fft = 2048
+    hop_length = 512
+
+    spectrogram = librosa.feature.melspectrogram(audio, sr=sample_rate, n_fft=n_fft, hop_length=hop_length, n_mels=n_mels)
+    return spectrogram
 
 
 class BirdCalls(torch.utils.data.IterableDataset):
@@ -48,9 +51,9 @@ class BirdCalls(torch.utils.data.IterableDataset):
         self.classes = max(metadata.iloc[:, 1])
 
     def load_spectrogram(self, index):
-        data, rate = load_sound_file(self.metadata.iloc[index, 2])
-        frequency_graph = spectrogram_creation(data, rate, None)
-        return frequency_graph[2]
+        data, rate = self.load_sound_file(self.metadata.iloc[index, 2])
+        frequency_graph = spectrogram_creation(data, rate, 224)
+        return frequency_graph
 
     def get_one_hot(self, target):
         a = torch.zeros(self.classes + 1, dtype=torch.long)
