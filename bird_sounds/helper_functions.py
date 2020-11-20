@@ -52,6 +52,10 @@ class BirdCalls(torch.utils.data.Dataset):
         self.sound_files = {}
         self.n = 0
         self.print_n = 0
+
+    def shuffle(self):
+        self.metadata = self.metadata.sample(frac=1).reset_index(drop=True)
+
     def resample(self, metadata):
         # Separate majority and minority classes
         majority = metadata['hasbird'].mode()[0]
