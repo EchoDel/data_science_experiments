@@ -1,7 +1,7 @@
 import pandas as pd
 import numpy as np
 from pathlib import Path
-import math
+import random as rand
 import librosa
 import torch
 import torch.nn as nn
@@ -93,10 +93,15 @@ class BirdCalls(torch.utils.data.Dataset):
         a[target] = 1
         return a
 
+    def subsample(self, sample):
+        start = rand.randint(0, len(sample) - self.y_size)
+        sample = sample[:, start:(start + self.y_size)]
+        return sample
+
     def __next__(self):
         if self.n <= self.end:
             sample = self.load_spectrogram(self.n)
-            sample = sample[0:224, 0:224]
+            sample = self.subsample(sample)
             sample = transforms.ToTensor()(sample)
             sample = sample.repeat(3, 1, 1)
             label = self.metadata.iloc[self.n, 1]
