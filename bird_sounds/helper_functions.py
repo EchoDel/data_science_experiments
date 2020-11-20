@@ -39,7 +39,7 @@ class BirdCalls(torch.utils.data.Dataset):
     def __init__(self, metadata_path, test, split_percentage=0.8, seed=1994):
         super(BirdCalls).__init__()
         metadata = load_metadata(metadata_path)
-        metadata = metadata.reset_index(drop=True)
+        metadata = self.resample(metadata)
         np.random.seed(seed)
         msk = np.random.rand(len(metadata)) < split_percentage
         if test:
@@ -49,6 +49,24 @@ class BirdCalls(torch.utils.data.Dataset):
         self.start = 0
         self.end = self.metadata.shape[0]
         self.classes = max(metadata.iloc[:, 1])
+        self.sound_files = {}
+        self.n = 0
+        self.print_n = 0
+    def resample(self, metadata):
+        # Separate majority and minority classes
+        majority = metadata['hasbird'].mode()[0]
+        df_majority = metadata[metadata.hasbird == 0]
+        df_minority = metadata[metadata.hasbird == 1]
+
+        # Upsample minority class
+        df_minority_upsampled = resample(df_minority,
+                                         replace=True,  # sample with replacement
+                                         n_samples=df_majority.shape[0],  # to match majority class
+                                         random_state=123)  # reproducible results
+
+        # Combine majority class with upsampled minority class
+        df_upsampled = pd.concat([df_majority, df_minority_upsampled]).sample(frac=1).reset_index(drop=True)
+        return df_upsampled
 
     def load_spectrogram(self, index):
         data, rate = self.load_sound_file(self.metadata.iloc[index, 2])
