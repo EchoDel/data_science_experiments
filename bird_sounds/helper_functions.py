@@ -72,6 +72,14 @@ class BirdCalls(torch.utils.data.Dataset):
         df_upsampled = pd.concat([df_majority, df_minority_upsampled]).sample(frac=1).reset_index(drop=True)
         return df_upsampled
 
+    def load_sound_file(self, itemid):
+        if itemid not in self.sound_files:
+            if self.print_n % 100 == 0:
+                print(itemid)
+            self.print_n +=1
+            self.sound_files[itemid] = load_sound_file(itemid)
+        return self.sound_files[itemid]
+
     def load_spectrogram(self, index):
         data, rate = self.load_sound_file(self.metadata.iloc[index, 2])
         frequency_graph = spectrogram_creation(data, rate, 224)
