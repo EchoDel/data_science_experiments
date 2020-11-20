@@ -36,10 +36,11 @@ def spectrogram_creation(audio, sample_rate, n_mels):
 
 
 class BirdCalls(torch.utils.data.Dataset):
-    def __init__(self, metadata_path, test, split_percentage=0.8, seed=1994):
+    def __init__(self, metadata_path, test, x_size, y_size, split_percentage=0.8, seed=1994):
         super(BirdCalls).__init__()
         metadata = load_metadata(metadata_path)
         metadata = self.resample(metadata)
+        rand.seed(seed)
         np.random.seed(seed)
         msk = np.random.rand(len(metadata)) < split_percentage
         if test:
@@ -52,6 +53,8 @@ class BirdCalls(torch.utils.data.Dataset):
         self.sound_files = {}
         self.n = 0
         self.print_n = 0
+        self.x_size = x_size
+        self.y_size = y_size
 
     def shuffle(self):
         self.metadata = self.metadata.sample(frac=1).reset_index(drop=True)
@@ -82,7 +85,7 @@ class BirdCalls(torch.utils.data.Dataset):
 
     def load_spectrogram(self, index):
         data, rate = self.load_sound_file(self.metadata.iloc[index, 2])
-        frequency_graph = spectrogram_creation(data, rate, 224)
+        frequency_graph = spectrogram_creation(data, rate, self.x_size)
         return frequency_graph
 
     def get_one_hot(self, target):
