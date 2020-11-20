@@ -35,7 +35,7 @@ def spectrogram_creation(audio, sample_rate, n_mels):
     return spectrogram
 
 
-class BirdCalls(torch.utils.data.IterableDataset):
+class BirdCalls(torch.utils.data.Dataset):
     def __init__(self, metadata_path, test, split_percentage=0.8, seed=1994):
         super(BirdCalls).__init__()
         metadata = load_metadata(metadata_path)
@@ -60,27 +60,17 @@ class BirdCalls(torch.utils.data.IterableDataset):
         a[target] = 1
         return a
 
-    def __iter__(self):
-        worker_info = torch.utils.data.get_worker_info()
-        if worker_info is None:  # single-process data loading, return the full iterator
-            iter_start = self.start
-            iter_end = self.end
-        else: # in a worker process  # split workload
-            per_worker = int(math.ceil((self.end - self.start) / float(worker_info.num_workers)))
-            worker_id = worker_info.id
-            iter_start = self.start + worker_id * per_worker
-            iter_end = min(iter_start + per_worker, self.end)
-
-        result = []
-        for index in range(iter_start, iter_end):
-            sample = self.load_spectrogram(index)
+    def __next__(self):
+        if self.n <= self.end:
+            sample = self.load_spectrogram(self.n)
             sample = sample[0:224, 0:224]
             sample = transforms.ToTensor()(sample)
             sample = sample.repeat(3, 1, 1)
-            label = self.metadata.iloc[index, 1]
-            result.append((sample, label))
-
-        return iter(result)
+            label = self.metadata.iloc[self.n, 1]
+            self.n += 1
+            return sample, label
+        else:
+            raise StopIteration
 
     def __getitem__(self, index):
         sample = self.load_spectrogram(index)
