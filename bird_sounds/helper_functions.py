@@ -111,7 +111,7 @@ class BirdCalls(torch.utils.data.Dataset):
         return sample, label
 
     def __len__(self):
-        return self.metadata.shape[0]
+        return self.end
 
 
 class AlexNet(nn.Module):
