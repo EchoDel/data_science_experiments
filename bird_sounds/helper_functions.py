@@ -109,24 +109,26 @@ class BirdCalls(torch.utils.data.Dataset):
 
         return F.pad(input=sample, pad=padding_dimension, mode='constant', value=0)
 
+    def load_sample(self, index):
+        sample = self.load_spectrogram(index)
+        sample = self.subsample(sample)
+        sample = transforms.transforms.ToTensor()(sample)
+        sample = sample.repeat(3, 1, 1)
+        sample = self.transformations(sample)
+        sample = self.pad_tensor(sample)
+        label = self.metadata.iloc[index, 1]
+        return sample, label
+
     def __next__(self):
         if self.n <= self.end:
-            sample = self.load_spectrogram(self.n)
-            sample = self.subsample(sample)
-            sample = self.transformations(sample)
-            sample = sample.repeat(3, 1, 1)
-            label = self.metadata.iloc[self.n, 1]
+            sample, label = self.load_sample(self.n)
             self.n += 1
             return sample, label
         else:
             raise StopIteration
 
     def __getitem__(self, index):
-        sample = self.load_spectrogram(index)
-        sample = sample[0:224, 0:224]
-        sample = transforms.ToTensor()(sample)
-        sample = sample.repeat(3, 1, 1)
-        label = self.metadata.iloc[index, 1]
+        sample, label = self.load_sample(index)
         return sample, label
 
     def __len__(self):
