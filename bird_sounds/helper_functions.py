@@ -43,11 +43,10 @@ class BirdCalls(torch.utils.data.Dataset):
         metadata = self.resample(metadata)
         rand.seed(seed)
         np.random.seed(seed)
-        msk = np.random.rand(len(metadata)) < split_percentage
+        self.msk = np.random.rand(len(metadata)) < split_percentage
         if test:
-            self.metadata = metadata[~msk].reset_index(drop=True)
-        else:
-            self.metadata = metadata[msk].reset_index(drop=True)
+            self.msk = ~self.msk
+        self.metadata = metadata[self.msk].reset_index(drop=True)
         self.start = 0
         self.end = self.metadata.shape[0]
         self.classes = max(metadata.iloc[:, 1])
