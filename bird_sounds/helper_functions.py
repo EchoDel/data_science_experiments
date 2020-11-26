@@ -7,6 +7,7 @@ import torch
 import torch.nn as nn
 from sklearn.utils import resample
 from torchvision import transforms
+import torch.nn.functional as F
 
 
 def load_metadata(path: Path):
@@ -98,6 +99,15 @@ class BirdCalls(torch.utils.data.Dataset):
         start = rand.randint(0, len(sample) - self.y_size)
         sample = sample[:, start:(start + self.y_size)]
         return sample
+
+    def pad_tensor(self, sample):
+        padding_dimension = []
+        for current, required in zip(list(sample.shape), [3, self.x_size, self.y_size]):
+            padding_dimension.append(max(required - current, 0))
+            padding_dimension.append(0)
+        padding_dimension.reverse()
+
+        return F.pad(input=sample, pad=padding_dimension, mode='constant', value=0)
 
     def __next__(self):
         if self.n <= self.end:
