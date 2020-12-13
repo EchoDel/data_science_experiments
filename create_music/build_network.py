@@ -12,12 +12,11 @@ from matplotlib import pyplot as plt
 folder = Path('../music')
 device = 'cpu'
 sample_length = 32768
-load = 'new'
-load_iteration = 0
 model_name = 'music_creation'
 metadata_file = 'lofi'
-epochs_to_run = 10
-save_every = 10
+config_file = Path(f'models/{metadata_file}/metadata{model_name}.json')
+epochs_to_run = 1000
+save_every = 100
 samplerate = 16000
 
 transformations = transforms.transforms.Compose([
@@ -32,11 +31,18 @@ train_loader = torch.utils.data.DataLoader(
                                    sr=samplerate),
     batch_size=16)
 
+if config_file.exists():
+    with open(f'models/{metadata_file}/metadata{model_name}.json', 'r') as outfile:
+        metadata = json.load(outfile)
 
-if load != 'new':
-    model = torch.load(load)
+    for key, value in metadata.items():
+        if 'path' in value:
+            model_path = value['path']
+            starting_iteration = int(key)
+
+    model = torch.load(model_path)
 else:
-    model = helper_functions.LinearNN(len(train_loader.dataset), sample_length)
+    model = helper_functions.LinearNN
 
 
 optimizer = optim.SGD(model.parameters(), lr=0.05, momentum=0.9)
@@ -51,7 +57,7 @@ accuracies = []
 metadata = {}
 
 for epoch in range(epochs_to_run):
-    epoch = load_iteration + epoch
+    epoch = starting_iteration + epoch
     model.train()
     for results, inputs in train_loader:
         steps += 1
@@ -64,7 +70,7 @@ for epoch in range(epochs_to_run):
         running_loss += loss.item()
 
     train_losses.append(running_loss)
-    print(f"Epoch {epoch + 1}/{epochs_to_run + load_iteration}.. "
+    print(f"Epoch {epoch + 1}/{epochs_to_run + starting_iteration}.. "
           f"Train loss: {running_loss:.3f}.. ")
     running_loss = 0
 
@@ -78,5 +84,5 @@ for epoch in range(epochs_to_run):
         metadata[epoch + 1]['path'] = save_path
         torch.save(model, save_path)
 
-with open(f'models/{metadata_file}/metadata{model_name}.json', 'w') as outfile:
+with open(config_file, 'w') as outfile:
     json.dump(metadata, outfile)
