@@ -43,6 +43,7 @@ if config_file.exists():
     model = torch.load(model_path)
 else:
     model = helper_functions.LinearNN
+    metadata = {}
 
 
 optimizer = optim.SGD(model.parameters(), lr=0.05, momentum=0.9)
@@ -54,7 +55,6 @@ running_loss = 0
 train_losses = []
 test_losses = []
 accuracies = []
-metadata = {}
 
 for epoch in range(epochs_to_run):
     epoch = starting_iteration + epoch
