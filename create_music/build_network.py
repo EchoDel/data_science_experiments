@@ -12,11 +12,12 @@ from matplotlib import pyplot as plt
 folder = Path('../music')
 device = 'cpu'
 sample_length = 32768
-model = helper_functions.LinearNN
+load = 'new'
+load_iteration = 0
 model_name = 'music_creation'
 metadata_file = 'lofi'
-epochs = 4000
-save_every = 100
+epochs_to_run = 10
+save_every = 10
 samplerate = 16000
 
 transformations = transforms.transforms.Compose([
@@ -31,13 +32,12 @@ train_loader = torch.utils.data.DataLoader(
                                    sr=samplerate),
     batch_size=16)
 
-#
-# len(train_loader.dataset)
-#
-# len(helper_functions.load_sound_file(train_loader.dataset.metadata.iloc[1][0])[0])
-#
 
-model = model(len(train_loader.dataset), sample_length)
+if load != 'new':
+    model = torch.load(load)
+else:
+    model = helper_functions.LinearNN(len(train_loader.dataset), sample_length)
+
 
 optimizer = optim.SGD(model.parameters(), lr=0.05, momentum=0.9)
 criterion = nn.L1Loss()
@@ -50,7 +50,8 @@ test_losses = []
 accuracies = []
 metadata = {}
 
-for epoch in range(epochs):
+for epoch in range(epochs_to_run):
+    epoch = load_iteration + epoch
     model.train()
     for results, inputs in train_loader:
         steps += 1
@@ -63,7 +64,7 @@ for epoch in range(epochs):
         running_loss += loss.item()
 
     train_losses.append(running_loss)
-    print(f"Epoch {epoch + 1}/{epochs}.. "
+    print(f"Epoch {epoch + 1}/{epochs_to_run + load_iteration}.. "
           f"Train loss: {running_loss:.3f}.. ")
     running_loss = 0
 
