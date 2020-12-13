@@ -13,13 +13,18 @@ model_name = 'music_creation'
 metadata_file = 'lofi'
 epochs = 40
 save_every = 5
-samplerate=16000
+sample_rate = 16000
+
 
 with open(f'models/{metadata_file}/metadata{model_name}.json', 'r') as outfile:
     metadata = json.load(outfile)
 
-model = torch.load(metadata['700']['path'])
-model = torch.load('models/lofi/music_creation_music_creation_800.pth')
+for key, value in metadata.items():
+    if 'path' in value:
+        model_path = value['path']
+        starting_iteration = int(key)
+
+model = torch.load(model_path)
 model.eval()
 
 
@@ -32,4 +37,4 @@ for x in range(list(model.parameters())[0].shape[1]):
 
     output_path.parent.mkdir(exist_ok=True, parents=True)
 
-    write(output_path, output, samplerate=samplerate)
+    write(output_path, output, samplerate=sample_rate)
