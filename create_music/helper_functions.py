@@ -117,13 +117,9 @@ class LinearNN(nn.Module):
             nn.Linear(4096, final_length * 2),
         )
         self.classifier = nn.Sequential(
-            nn.Dropout(),
-            nn.Linear(final_length * 2, 4096),
             nn.ELU(inplace=True),
             nn.Dropout(),
-            nn.Linear(4096, 4096),
-            nn.Tanh(),
-            nn.Linear(4096, final_length),
+            nn.Linear(int(final_length * 2), final_length),
         )
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
