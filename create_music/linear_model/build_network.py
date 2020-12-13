@@ -1,7 +1,7 @@
 import json
 from pathlib import Path
 
-from create_music import helper_functions
+from create_music.linear_model import helper_functions
 import torch
 from torch import nn
 from torch import optim

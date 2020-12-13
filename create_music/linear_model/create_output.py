@@ -2,7 +2,7 @@ import json
 from pathlib import Path
 from soundfile import write
 
-from create_music import helper_functions
+from create_music.linear_model import helper_functions
 import torch
 import uuid
 
@@ -33,7 +33,7 @@ for x in range(list(model.parameters())[0].shape[1]):
 
     output = helper_functions.create_output(model, switches)
 
-    output_path = Path('create_music') / 'outputs' / metadata_file / f'{x}_{uuid.uuid4().__str__()}.wav'
+    output_path = Path('create_music/linear_model') / 'outputs' / metadata_file / f'{x}_{uuid.uuid4().__str__()}.wav'
 
     output_path.parent.mkdir(exist_ok=True, parents=True)
 
