@@ -15,8 +15,8 @@ sample_length = 32768
 model_name = 'music_creation'
 metadata_file = 'lofi'
 config_file = Path(f'models/{metadata_file}/metadata{model_name}.json')
-epochs_to_run = 1000
-save_every = 100
+epochs_to_run = 1600
+save_every = 400
 samplerate = 16000
 
 transformations = transforms.transforms.Compose([
