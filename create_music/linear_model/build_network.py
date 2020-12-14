@@ -45,6 +45,7 @@ else:
     model = helper_functions.LinearNN(inputs=len(train_loader.dataset),
                                       final_length=sample_length)
     metadata = {}
+    starting_iteration = 0
 
 
 optimizer = optim.SGD(model.parameters(), lr=0.05, momentum=0.9)
