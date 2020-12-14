@@ -42,7 +42,8 @@ if config_file.exists():
 
     model = torch.load(model_path)
 else:
-    model = helper_functions.LinearNN
+    model = helper_functions.LinearNN(inputs=len(train_loader.dataset),
+                                      final_length=sample_length)
     metadata = {}
 
 
