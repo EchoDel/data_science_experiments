@@ -59,6 +59,7 @@ test_losses = []
 accuracies = []
 
 for epoch in range(epochs_to_run):
+    running_loss = 0
     epoch = starting_iteration + epoch
     model.train()
     for results, inputs in train_loader:
@@ -74,7 +75,6 @@ for epoch in range(epochs_to_run):
     train_losses.append(running_loss)
     print(f"Epoch {epoch + 1}/{epochs_to_run + starting_iteration}.. "
           f"Train loss: {running_loss:.3f}.. ")
-    running_loss = 0
 
     save_path = f'models/{metadata_file}/music_creation_{model_name}_{epoch + 1}.pth'
     metadata[epoch + 1] = {
