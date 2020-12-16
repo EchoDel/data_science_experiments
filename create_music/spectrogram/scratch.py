@@ -66,6 +66,6 @@ for x in window_exponants:
         now = datetime.now()
         output = features.get_audio_from_mel_spectrogram(spectrogram)
 
-        outputs[windowLength][n_iter] = {'mse' : mean_squared_error(output, data),
+        outputs[windowLength][n_iter] = {'mse': mean_squared_error(output, data),
                                          'length': spectrogram.shape[1],
                                          'time': (datetime.now() - now).seconds}
