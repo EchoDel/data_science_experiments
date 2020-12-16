@@ -15,10 +15,9 @@ Additionally, the model was too large to quickly hand around and deploying in th
 
 # Training On Spectrogram
 
-Target is spectrogram of the input sound file which is transformed back into normal sound files at the end.
-This approach was taken since we can compress the information into a smaller dataset to keep the size of the final model smaller.
-This approach was inspired by the article by [Daitan][2] where they built a network for removing noise from a sound file.
+Instead of training on the linear raw sound file if instead we transform the sound into a spectrogram we can reduce the model complexity for the sound file length.
 
+This approach was inspired by the article by [Daitan][2] where they built a network for removing noise from a sound file.
 
 # References
 
