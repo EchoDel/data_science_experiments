@@ -15,7 +15,9 @@ This approach was inspired by the article by [Daitan][2] where they built a netw
 
 # Spectrograms
 
-A spectrogram breaks down the sound input into bins of frequency intensity using a fourier transform to present the signal as a three dimensional heat map.
+A spectrogram breaks down the sound input into bins of frequency intensity using a fourier transform to present the signal as a three-dimensional heat map.
+By transposing the input file into this format we can reduce the data required to represent this signal and therefore make any models built from this simpler.
+Unfortunately this is a lossy transformation, so the output won't sound perfect but will be good enough for this experiment.
 
 Spectrogram of a violin [from wikipedia](https://en.wikipedia.org/wiki/File:Spectrogram_of_violin.png)
 ![Spectrogram of a violin][spectrogram]
