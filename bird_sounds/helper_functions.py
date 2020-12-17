@@ -80,7 +80,7 @@ class BirdCalls(torch.utils.data.Dataset):
         if itemid not in self.sound_files:
             if self.print_n % 100 == 0:
                 print(itemid)
-            self.print_n +=1
+            self.print_n += 1
             self.sound_files[itemid] = load_sound_file(itemid)
         return self.sound_files[itemid]
 
@@ -169,4 +169,3 @@ class AlexNet(nn.Module):
         x = torch.flatten(x, 1)
         x = self.classifier(x)
         return x
-
