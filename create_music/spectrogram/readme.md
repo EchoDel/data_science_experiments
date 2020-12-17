@@ -42,12 +42,16 @@ Tests were performed balancing these two variable to evaluate the;
 
 ### Processing Time
 
-When the window length is 64 the processing time is over 20 seconds so 
+When the window length is 128 and under samples the processing time is under 30 seconds which could be considered a reasonable time to generate. As we go to 1024 and above the processing time is 600 seconds or 10 minutes and up which would appear unreasonably slow.
+Additionally, we can also see that the error increases as we increase the sample size, presumably since there is more information which can be used to recreate the signals.
 
 ![Image of the processing time against the window length](https://github.com/redparry/data_science_experiments/blob/master/create_music/spectrogram/contents/spectrogram_settings_time.png "Spectrogram Processing Time")
 
 ### Length of the Spectrogram
 
+When comparing the length of the resulting spectrogram the amount of data needed to represent the signal decreases in a logarithmic fashion as you increase the windows length so picking a larger window will allow for a longer final sample with the same complexity of model.
+
+![Image of the length of the sample sound file](https://github.com/redparry/data_science_experiments/blob/master/create_music/spectrogram/contents/spectrogram_settings_length.png "Spectrogram Output Length")
 
 
 ### Listening to the Quality
@@ -61,29 +65,34 @@ Source:Urban Haze by Scott Holmes Music
 Your browser does not support the audio element.
 </audio> 
 
-#### 64 
+#### Spectrogram 64
 <audio controls>
   <source src="https://raw.githubusercontent.com/redparry/data_science_experiments/master/create_music/spectrogram/contents/sample_audio_64.wav" type="audio/wav">
 Your browser does not support the audio element.
-</audio> 
+</audio>
 
-#### 512
+#### Spectrogram 2048
 <audio controls>
-  <source src="https://raw.githubusercontent.com/redparry/data_science_experiments/master/create_music/spectrogram/contents/sample_audio_512.wav" type="audio/wav">
+  <source src="https://raw.githubusercontent.com/redparry/data_science_experiments/master/create_music/spectrogram/contents/sample_audio_2048.wav" type="audio/wav">
 Your browser does not support the audio element.
 </audio> 
 
-#### 1024 
+#### Mel Spectrogram 64
 <audio controls>
-  <source src="https://raw.githubusercontent.com/redparry/data_science_experiments/master/create_music/spectrogram/contents/sample_audio_1024.wav" type="audio/wav">
+  <source src="https://raw.githubusercontent.com/redparry/data_science_experiments/master/create_music/spectrogram/contents/sample_audio_2048.wav" type="audio/wav">
+Your browser does not support the audio element.
+</audio>
+
+#### Mel Spectrogram 2048
+<audio controls>
+  <source src="https://raw.githubusercontent.com/redparry/data_science_experiments/master/create_music/spectrogram/contents/sample_audio_mel_2048.wav" type="audio/wav">
 Your browser does not support the audio element.
 </audio> 
 
-#### 2048
-<audio controls>
-  <source src="https://raw.githubusercontent.com/redparry/data_science_experiments/master/create_music/spectrogram/contents/test_2048.wav" type="audio/wav">
-Your browser does not support the audio element.
-</audio> 
+
+# Conclusion
+
+For this first pass a mel spectrogram is used with a window length of 2048 noting the limitation of this approach and should the requirement to take the model to production a smaller window will be selected. 
 
 # References
 

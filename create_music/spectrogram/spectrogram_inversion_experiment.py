@@ -49,8 +49,7 @@ data, rate = librosa.load(input_file)
 
 # Produce a sample output of the sound file
 
-for windowLength in [64, 512, 1024, 2048]:
-
+for windowLength in [64, 2048]:
     overlap = round(0.25 * windowLength)
 
     features = FeatureExtractor(audio=data,
@@ -64,8 +63,24 @@ for windowLength in [64, 512, 1024, 2048]:
     now = datetime.now()
     output = features.get_audio_from_mel_spectrogram(spectrogram)
 
-    write(image_folder / f'sample_audio_{windowLength}.wav', output, samplerate=rate)
+    write(image_folder / f'sample_audio_mel_{windowLength}.wav', output, samplerate=rate)
 
+
+for windowLength in [64, 2048]:
+    overlap = round(0.25 * windowLength)
+
+    features = FeatureExtractor(audio=data,
+                                windowLength=windowLength,
+                                overlap=overlap,
+                                sample_rate=rate,
+                                inverse_iter=16)
+
+    spectrogram = features.get_stft_spectrogram()
+
+    now = datetime.now()
+    output = features.get_audio_from_stft_spectrogram(spectrogram)
+
+    write(image_folder / f'sample_audio_{windowLength}.wav', output, samplerate=rate)
 
 # Calculate the relevent parameters for the sound file processing
 
