@@ -5,7 +5,6 @@ import pandas as pd
 from matplotlib import pyplot as plt
 from matplotlib.ticker import ScalarFormatter
 
-from create_music.spectrogram import helper_functions
 from sklearn.metrics import mean_squared_error
 from pathlib import Path
 from datetime import datetime
@@ -35,17 +34,18 @@ class FeatureExtractor:
 
     def get_mel_spectrogram(self):
         return librosa.feature.melspectrogram(self.audio, sr=self.sample_rate, power=2.0, pad_mode='reflect',
-                                           n_fft=self.ffT_length, hop_length=self.overlap, center=True)
+                                              n_fft=self.ffT_length, hop_length=self.overlap, center=True)
 
     def get_audio_from_mel_spectrogram(self, M):
-        return librosa.feature.inverse.mel_to_audio(M, sr=self.sample_rate, n_fft=self.ffT_length, hop_length=self.overlap,
-                                             win_length=self.window_length, window=self.window,
-                                             center=True, pad_mode='reflect', power=2.0, n_iter=self.inverse_iter, length=None)
+        return librosa.feature.inverse.mel_to_audio(M, sr=self.sample_rate, n_fft=self.ffT_length,
+                                                    hop_length=self.overlap, win_length=self.window_length,
+                                                    window=self.window, center=True, pad_mode='reflect', power=2.0,
+                                                    n_iter=self.inverse_iter, length=None)
 
 # get input sound file
 
-data, rate = librosa.load(input_file)
 
+data, rate = librosa.load(input_file)
 
 # Produce a sample output of the sound file
 
@@ -59,8 +59,6 @@ for windowLength in [64, 2048]:
                                 inverse_iter=16)
 
     spectrogram = features.get_mel_spectrogram()
-
-    now = datetime.now()
     output = features.get_audio_from_mel_spectrogram(spectrogram)
 
     write(image_folder / f'sample_audio_mel_{windowLength}.wav', output, samplerate=rate)
@@ -76,19 +74,17 @@ for windowLength in [64, 2048]:
                                 inverse_iter=16)
 
     spectrogram = features.get_stft_spectrogram()
-
-    now = datetime.now()
     output = features.get_audio_from_stft_spectrogram(spectrogram)
 
     write(image_folder / f'sample_audio_{windowLength}.wav', output, samplerate=rate)
 
-# Calculate the relevent parameters for the sound file processing
+# Calculate the relevant parameters for the sound file processing
 
-window_exponants = range(6,15)
+window_exponents = range(6, 15)
 
-data_frame_list = {}
+data_frame_list = []
 
-for x in window_exponants:
+for x in window_exponents:
     windowLength = 2**x
     for n_iter in range(2, 17, 2):
         overlap = round(0.25 * windowLength)
@@ -105,14 +101,15 @@ for x in window_exponants:
         output = features.get_audio_from_mel_spectrogram(spectrogram)
 
         data_frame_list.append({'mse': mean_squared_error(output, data),
-                        'length': spectrogram.shape[1],
-                        'time': (datetime.now() - now).seconds,
-                        'window_length': windowLength,
-                        'n_iter': n_iter})
+                                'length': spectrogram.shape[1],
+                                'time': (datetime.now() - now).seconds,
+                                'window_length': windowLength,
+                                'n_iter': n_iter})
 
 
 dataframe = pd.DataFrame(data_frame_list)
 dataframe['rounded_mse'] = round(dataframe['mse'] * 100, 1)
+
 
 def plot_graph(data_set, x_column, ax1_columns, ax2_columns, legend, colours):
     fig, ax = plt.subplots()
