@@ -1,6 +1,9 @@
 import librosa
 import scipy
 from soundfile import write
+import pandas as pd
+from matplotlib import pyplot as plt
+from matplotlib.ticker import ScalarFormatter
 
 from create_music.spectrogram import helper_functions
 from sklearn.metrics import mean_squared_error
@@ -8,9 +11,10 @@ from pathlib import Path
 from datetime import datetime
 
 
-folder = Path('../music')
+input_folder = Path('../music')
+image_folder = Path('create_music/spectrogram/outputs')
 
-metadata = helper_functions.load_metadata(folder)
+metadata = helper_functions.load_metadata(input_folder)
 
 
 class FeatureExtractor:
@@ -47,11 +51,10 @@ data, rate = librosa.load(metadata.iloc[0, 0])
 
 window_exponants = range(6,15)
 
-outputs = {}
+data_frame_list = {}
 
 for x in window_exponants:
     windowLength = 2**x
-    outputs[windowLength] = {}
     for n_iter in range(2, 17, 2):
         overlap = round(0.25 * windowLength)
 
@@ -66,8 +69,69 @@ for x in window_exponants:
         now = datetime.now()
         output = features.get_audio_from_mel_spectrogram(spectrogram)
 
-        outputs[windowLength][n_iter] = {'mse': mean_squared_error(output, data),
-                                         'length': spectrogram.shape[1],
-                                         'time': (datetime.now() - now).seconds}
+        data_frame_list.append({'mse': mean_squared_error(output, data),
+                        'length': spectrogram.shape[1],
+                        'time': (datetime.now() - now).seconds,
+                        'window_length': windowLength,
+                        'n_iter': n_iter})
 
 
+dataframe = pd.DataFrame(data_frame_list)
+dataframe['rounded_mse'] = round(dataframe['mse'] * 100, 1)
+
+def plot_graph(data_set, x_column, ax1_columns, ax2_columns, legend, colours):
+    fig, ax = plt.subplots()
+    ax.set_xscale('log', base=2)
+    ax.set_yscale('log', base=10)
+    ax2 = ax.twinx()
+    ax2.set_ylabel('Mean Squared Error')
+
+    for axis in [ax.xaxis, ax.yaxis]:
+        axis.set_major_formatter(ScalarFormatter())
+
+    for column in ax1_columns:
+        ax.plot(data_set[x_column], data_set[column], color=colours.pop())
+
+    for column in ax2_columns:
+        ax2.plot(data_set[x_column], data_set[column], color=colours.pop())
+
+    fig.legend(legend)
+    fig.set_size_inches(12, 6)
+    return fig, ax
+
+
+fig, ax = plot_graph(dataframe[dataframe['n_iter'] == 2],
+                     x_column='window_length',
+                     ax1_columns=['time'],
+                     ax2_columns=['rounded_mse'],
+                     legend=['Processing Time', 'Error in the output file'],
+                     colours=['g', 'r'])
+
+ax.set_ylabel('Time to create output')
+ax.set_xlabel('Window Length')
+fig.savefig(image_folder / 'spectrogram_settings_time.png')
+
+
+fig, ax = plot_graph(dataframe[dataframe['n_iter'] == 2],
+                     x_column='window_length',
+                     ax1_columns=['length'],
+                     ax2_columns=['rounded_mse'],
+                     legend=['Length of the Image', 'Error in the output file'],
+                     colours=['g', 'b'])
+
+ax.set_ylabel('Length of the sample')
+ax.set_xlabel('Window Length')
+fig.savefig(image_folder / 'spectrogram_settings_length.png')
+
+
+fig, ax = plot_graph(dataframe[dataframe['window_length'] == 512],
+                     x_column='n_iter',
+                     ax1_columns=['time'],
+                     ax2_columns=['rounded_mse'],
+                     legend=['Processing Time', 'Error in the output file'],
+                     colours=['g', 'y'])
+
+ax.set_ylabel('Time to create output')
+ax.set_xlabel('Number of Iterations')
+ax.yaxis.set_minor_formatter(ScalarFormatter())
+fig.savefig(image_folder / 'spectrogram_settings_iterations.png', )
