@@ -92,7 +92,7 @@ Your browser does not support the audio element.
 
 # Conclusion
 
-For this first pass a mel spectrogram is used with a window length of 2048 noting the limitation of this approach and should the requirement to take the model to production a smaller window will be selected. 
+For this first pass a spectrogram is used with a window length of 2048 noting the limitation of this approach and should the requirement to take the model to production a smaller window will be selected. 
 
 # References
 
