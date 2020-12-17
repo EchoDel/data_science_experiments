@@ -1,7 +1,7 @@
 import json
 from pathlib import Path
 
-from create_music.linear_model import helper_functions
+from create_music.spectrogram import helper_functions
 import torch
 from torch import nn
 from torch import optim
@@ -17,19 +17,24 @@ metadata_file = 'lofi'
 config_file = Path(f'models/{metadata_file}/metadata{model_name}.json')
 epochs_to_run = 1600
 save_every = 400
-samplerate = 16000
+sample_rate = 22050
+window_length = 2048
+y_size = 500
 
 transformations = transforms.transforms.Compose([
-    transforms.transforms.Normalize(mean=[0.485, 0.456, 0.406],
-                                    std=[0.229, 0.224, 0.225])
+    # transforms.transforms.Normalize(mean=[0.485, 0.456, 0.406],
+    #                                 std=[0.229, 0.224, 0.225])
 ])
 
 train_loader = torch.utils.data.DataLoader(
     helper_functions.SongIngestion(Path(folder),
-                                   length=sample_length,
+                                   sample_length=sample_length,
                                    transformations=transformations,
-                                   sr=samplerate),
+                                   sr=sample_rate,
+                                   window_length=window_length,
+                                   y_size=y_size),
     batch_size=16)
+
 
 if config_file.exists():
     with open(f'models/{metadata_file}/metadata{model_name}.json', 'r') as outfile:

@@ -5,6 +5,7 @@ import random as rand
 import librosa
 import torch
 import torch.nn as nn
+from scipy.signal.windows import hamming
 from torch import tensor
 import torch.nn.functional as F
 
@@ -42,7 +43,7 @@ def create_output(model: nn.Module, switches: list):
 
 
 class SongIngestion(torch.utils.data.Dataset):
-    def __init__(self, folder, length, transformations, sr, seed=1994):
+    def __init__(self, folder, sample_length, transformations, sr, window_length, y_size, seed=1994):
         super(SongIngestion).__init__()
         self.metadata = load_metadata(folder)
 
@@ -51,12 +52,15 @@ class SongIngestion(torch.utils.data.Dataset):
 
         self.start = 0
         self.end = self.metadata.shape[0]
+        self.y_size = y_size
         self.sound_files = {}
         self.n = 0
         self.print_n = 0
-        self.length = length
+        self.length = sample_length
         self.transformations = transformations
         self.sr = sr
+        self.window_length = window_length
+        self.window = hamming(self.window_length, sym=False)
 
     def onehot(self, n):
         output = np.zeros(self.end)
@@ -71,20 +75,26 @@ class SongIngestion(torch.utils.data.Dataset):
             self.sound_files[itemid] = load_sound_file(self.metadata.iloc[itemid, 0], self.sr)
         return self.sound_files[itemid]
 
+    def load_spectrogram(self, data, rate):
+        frequency_graph = librosa.feature.melspectrogram(data,
+                                                         sr=rate,
+                                                         n_fft=self.window_length,
+                                                         hop_length=round(0.25 * self.window_length),
+                                                         window=self.window)
+        return frequency_graph
+
     def subsample(self, sample):
-        # start = rand.randint(0, len(sample) - self.length)
-        # maximum starting point for the sample to ensure we have the right amount of data after it
-        maximum_start = len(sample) - self.length
-        # Start either 45 seconds into the sample or the latest where we can get a full sample
-        start = min(22050*45, maximum_start)
-        sample = sample[start:(start + self.length)]
+        sample_length = sample.shape[1]
+        start = rand.randint(0, sample_length - self.y_size)
+        sample = sample[:, start:(start + self.y_size)]
         return sample
 
     def load_sample(self, index):
         sample, rate = self.load_sound_file(index)
+        sample = self.load_spectrogram(sample, rate)
         sample = self.subsample(sample)
         sample = tensor(sample).float()
-        # sample = self.transformations(sample)
+        sample = self.transformations(sample)
         return sample
 
     def __next__(self):
@@ -101,7 +111,6 @@ class SongIngestion(torch.utils.data.Dataset):
 
     def __len__(self):
         return self.end
-
 
 
 class LinearNN(nn.Module):
