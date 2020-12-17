@@ -42,7 +42,7 @@ Tests were performed balancing these two variable to evaluate the;
 
 When the window length is 64 the processing time is over 20 seconds so 
 
-![Image of the processing time against the window length](https://github.com/redparry/data_science_experiments/blob/master/create_music/spectrogram/outputs/spectrogram_settings_time.png "Spectrogram Processing Time")
+![Image of the processing time against the window length](https://github.com/redparry/data_science_experiments/blob/master/create_music/spectrogram/contents/spectrogram_settings_time.png "Spectrogram Processing Time")
 
 ### Length of the Spectrogram
 
@@ -51,28 +51,35 @@ When the window length is 64 the processing time is over 20 seconds so
 ### Listening to the Quality
 
 As the saying goes, the proof of the pudding is in the eating, so by listening to the outputs from this transformation we can draw more conclusions
+Source:Urban Haze by Scott Holmes Music
 
-#### 128 
+#### Original
 <audio controls>
-  <source src="https://github.com/redparry/data_science_experiments/blob/master/create_music/spectrogram/outputs/test_128.wav" type="audio/wav">
+  <source src="https://raw.githubusercontent.com/redparry/data_science_experiments/master/create_music/spectrogram/contents/gyNN33kV2jCi8mFtwMpHMEV9Hajbtc5XSrWxZzPg.mp3" type="audio/mp3">
+Your browser does not support the audio element.
+</audio> 
+
+#### 64 
+<audio controls>
+  <source src="https://raw.githubusercontent.com/redparry/data_science_experiments/master/create_music/spectrogram/contents/sample_audio_64.wav" type="audio/wav">
 Your browser does not support the audio element.
 </audio> 
 
 #### 512
 <audio controls>
-  <source src="https://github.com/redparry/data_science_experiments/blob/master/create_music/spectrogram/outputs/test_512.wav" type="audio/wav">
+  <source src="https://raw.githubusercontent.com/redparry/data_science_experiments/master/create_music/spectrogram/contents/sample_audio_512.wav" type="audio/wav">
 Your browser does not support the audio element.
 </audio> 
 
 #### 1024 
 <audio controls>
-  <source src="https://github.com/redparry/data_science_experiments/blob/master/create_music/spectrogram/outputs/test_1024.wav" type="audio/wav">
+  <source src="https://raw.githubusercontent.com/redparry/data_science_experiments/master/create_music/spectrogram/contents/sample_audio_1024.wav" type="audio/wav">
 Your browser does not support the audio element.
 </audio> 
 
 #### 2048
 <audio controls>
-  <source src="https://github.com/redparry/data_science_experiments/blob/master/create_music/spectrogram/outputs/test_2048.wav" type="audio/wav">
+  <source src="https://raw.githubusercontent.com/redparry/data_science_experiments/master/create_music/spectrogram/contents/test_2048.wav" type="audio/wav">
 Your browser does not support the audio element.
 </audio> 
 
