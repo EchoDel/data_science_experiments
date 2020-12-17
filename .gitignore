@@ -1,5 +1,4 @@
-
 .idea/
 *.pyc
 *.pth
-*.wav
+create_music/linear_model/outputs/lofi/*
