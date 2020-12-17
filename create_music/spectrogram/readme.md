@@ -38,7 +38,43 @@ Tests were performed balancing these two variable to evaluate the;
  * mean squared error against the source sound file
  * time take to recreate the sound file from the spectrogram
 
+### Processing Time
 
+When the window length is 64 the processing time is over 20 seconds so 
+
+![Image of the processing time against the window length](https://github.com/redparry/data_science_experiments/blob/master/create_music/spectrogram/outputs/spectrogram_settings_time.png "Spectrogram Processing Time")
+
+### Length of the Spectrogram
+
+
+
+### Listening to the Quality
+
+As the saying goes, the proof of the pudding is in the eating, so by listening to the outputs from this transformation we can draw more conclusions
+
+#### 128 
+<audio controls>
+  <source src="https://github.com/redparry/data_science_experiments/blob/master/create_music/spectrogram/outputs/test_128.wav" type="audio/wav">
+Your browser does not support the audio element.
+</audio> 
+
+#### 512
+<audio controls>
+  <source src="https://github.com/redparry/data_science_experiments/blob/master/create_music/spectrogram/outputs/test_512.wav" type="audio/wav">
+Your browser does not support the audio element.
+</audio> 
+
+#### 1024 
+<audio controls>
+  <source src="https://github.com/redparry/data_science_experiments/blob/master/create_music/spectrogram/outputs/test_1024.wav" type="audio/wav">
+Your browser does not support the audio element.
+</audio> 
+
+#### 2048
+<audio controls>
+  <source src="https://github.com/redparry/data_science_experiments/blob/master/create_music/spectrogram/outputs/test_2048.wav" type="audio/wav">
+Your browser does not support the audio element.
+</audio> 
 
 # References
 
