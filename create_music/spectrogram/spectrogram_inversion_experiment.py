@@ -12,7 +12,7 @@ from datetime import datetime
 
 
 input_file = Path('create_music/spectrogram/contents/gyNN33kV2jCi8mFtwMpHMEV9Hajbtc5XSrWxZzPg.mp3')
-image_folder = Path('create_music/spectrogram/outputs')
+image_folder = Path('create_music/spectrogram/contents')
 
 
 class FeatureExtractor:
@@ -64,7 +64,7 @@ for windowLength in [64, 512, 1024, 2048]:
     now = datetime.now()
     output = features.get_audio_from_mel_spectrogram(spectrogram)
 
-    write(image_folder / f'sample_audio_{windowLength}.wav', output)
+    write(image_folder / f'sample_audio_{windowLength}.wav', output, samplerate=rate)
 
 
 # Calculate the relevent parameters for the sound file processing
