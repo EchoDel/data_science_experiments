@@ -11,10 +11,8 @@ from pathlib import Path
 from datetime import datetime
 
 
-input_folder = Path('../music')
+input_file = Path('create_music/spectrogram/contents/gyNN33kV2jCi8mFtwMpHMEV9Hajbtc5XSrWxZzPg.mp3')
 image_folder = Path('create_music/spectrogram/outputs')
-
-metadata = helper_functions.load_metadata(input_folder)
 
 
 class FeatureExtractor:
@@ -44,10 +42,32 @@ class FeatureExtractor:
                                              win_length=self.window_length, window=self.window,
                                              center=True, pad_mode='reflect', power=2.0, n_iter=self.inverse_iter, length=None)
 
+# get input sound file
+
+data, rate = librosa.load(input_file)
 
 
+# Produce a sample output of the sound file
 
-data, rate = librosa.load(metadata.iloc[0, 0])
+for windowLength in [64, 512, 1024, 2048]:
+
+    overlap = round(0.25 * windowLength)
+
+    features = FeatureExtractor(audio=data,
+                                windowLength=windowLength,
+                                overlap=overlap,
+                                sample_rate=rate,
+                                inverse_iter=16)
+
+    spectrogram = features.get_mel_spectrogram()
+
+    now = datetime.now()
+    output = features.get_audio_from_mel_spectrogram(spectrogram)
+
+    write(image_folder / f'sample_audio_{windowLength}.wav', output)
+
+
+# Calculate the relevent parameters for the sound file processing
 
 window_exponants = range(6,15)
 
