@@ -69,3 +69,5 @@ for x in window_exponants:
         outputs[windowLength][n_iter] = {'mse': mean_squared_error(output, data),
                                          'length': spectrogram.shape[1],
                                          'time': (datetime.now() - now).seconds}
+
+
