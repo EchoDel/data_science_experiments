@@ -74,7 +74,7 @@ for epoch in range(epochs_to_run):
         inputs, results = inputs.to(device).float(), results.to(device)
         optimizer.zero_grad()
         logps = model(inputs)
-        logps = logps.reshape([batch_size, 128, y_size])
+        logps = logps.reshape([logps.shape[0], 128, y_size])
         loss = criterion(logps, results.type_as(logps))
         loss.backward()
         optimizer.step()
