@@ -113,26 +113,33 @@ class SongIngestion(torch.utils.data.Dataset):
         return self.end
 
 
-class LinearNN(nn.Module):
-    def __init__(self, inputs, final_length) -> None:
-        super(LinearNN, self).__init__()
+class SoundGenerator(nn.Module):
+    def __init__(self, inputs, final_x, final_y) -> None:
+        super(SoundGenerator, self).__init__()
+        self.final_x = final_x
+        self.final_y = final_y
+        self.padding_x = round((self.final_x-5)/2)
+        self.padding_y = round((self.final_y-5)/2)
+        self.padding = (self.padding_x, self.padding_y)
+
+        self.fc = nn.Linear(inputs, 256)
+
         self.features = nn.Sequential(
-            nn.Linear(inputs, 256),
-            nn.ELU(inplace=True),
-            nn.Dropout(p=0.3),
-            nn.Linear(256, 4096),
-            nn.ELU(inplace=True),
-            nn.Dropout(p=0.3),
-            nn.Linear(4096, int(final_length / 2)),
+            nn.Conv2d(1, 64, kernel_size=4, stride=2, padding=2),
+            nn.ReLU(inplace=True),
+            nn.MaxPool2d(kernel_size=3, stride=2),
+            nn.Conv2d(64, 128, kernel_size=3, padding=1),
         )
-        self.classifier = nn.Sequential(
+
+        self.output_layer = nn.Sequential(
             nn.ELU(inplace=True),
             nn.Dropout(),
-            nn.Linear(int(final_length / 2), final_length),
+            nn.Conv2d(128, 1, kernel_size=1, padding=self.padding, stride=1,)
         )
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
+        x = self.fc(x)
+        x = x.view(x.size(0), 1, 16, 16)
         x = self.features(x)
-        x = torch.flatten(x, 1)
-        x = self.classifier(x)
+        x = self.output_layer(x)
         return x
