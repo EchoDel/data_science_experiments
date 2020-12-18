@@ -13,13 +13,14 @@ folder = Path('../music')
 device = 'cpu'
 sample_length = 32768
 model_name = 'music_creation'
-metadata_file = 'lofi'
+metadata_file = 'lofi_spectrogram'
 config_file = Path(f'models/{metadata_file}/metadata{model_name}.json')
 epochs_to_run = 1600
 save_every = 400
 sample_rate = 22050
 window_length = 2048
 y_size = 500
+batch_size = 16
 
 transformations = transforms.transforms.Compose([
     # transforms.transforms.Normalize(mean=[0.485, 0.456, 0.406],
@@ -33,7 +34,7 @@ train_loader = torch.utils.data.DataLoader(
                                    sr=sample_rate,
                                    window_length=window_length,
                                    y_size=y_size),
-    batch_size=16)
+    batch_size=batch_size)
 
 
 if config_file.exists():
@@ -47,8 +48,9 @@ if config_file.exists():
 
     model = torch.load(model_path)
 else:
-    model = helper_functions.LinearNN(inputs=len(train_loader.dataset),
-                                      final_length=sample_length)
+    model = helper_functions.SoundGenerator(inputs=len(train_loader.dataset),
+                                            final_x=128,
+                                            final_y=y_size)
     metadata = {}
     starting_iteration = 0
 
@@ -72,7 +74,8 @@ for epoch in range(epochs_to_run):
         inputs, results = inputs.to(device).float(), results.to(device)
         optimizer.zero_grad()
         logps = model(inputs)
-        loss = criterion(logps.squeeze(1), results.type_as(logps))
+        logps = logps.reshape([batch_size, 128, y_size])
+        loss = criterion(logps, results.type_as(logps))
         loss.backward()
         optimizer.step()
         running_loss += loss.item()
