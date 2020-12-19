@@ -89,10 +89,20 @@ Your browser does not support the audio element.
 Your browser does not support the audio element.
 </audio> 
 
-
-# Conclusion
+### Conclusion for spectrogram approach
 
 For this first pass a spectrogram is used with a window length of 2048 noting the limitation of this approach and should the requirement to take the model to production a smaller window will be selected. 
+
+# Model Development
+
+## First Model
+The first model was extended from the alexnet architecture with the simplistic approach of including a final layer which had a large padding to match the expected size.
+This results in a nearly fully zero output which have no ability to be trained. 
+As such this network will never be able to produce a suitable output, so a new architecture was created starting with the diagram and then transposed to code.
+
+![Image of the length of the sample sound file](https://github.com/redparry/data_science_experiments/blob/master/create_music/spectrogram/contents/model_1_architecture.png "First Neural Network Diagram")
+
+Diagram produced with [Alex le nails](http://alexlenail.me/NN-SVG/AlexNet.html) neural network tool.
 
 # References
 
