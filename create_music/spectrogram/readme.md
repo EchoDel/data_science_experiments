@@ -104,6 +104,18 @@ As such this network will never be able to produce a suitable output, so a new a
 
 Diagram produced with [Alex le nails](http://alexlenail.me/NN-SVG/AlexNet.html) neural network tool.
 
+## Research on the modelling problem
+
+The main options for how to increase the height and width of the output tensor is to either;
+
+1. repeat elements of an input tensor
+1. use and algorithm to infill based on the input vector
+
+# Algorithms
+
+
+Based on an [article][upsampling] from machine learning mastery the [Upsample][upsample_layer] layer can be used to interpolate an input into a higher resolution which could be used for this application.
+
 # References
 
 [1]: https://www.youtube.com/watch?v=wXWKWyALxYM
@@ -112,5 +124,7 @@ Diagram produced with [Alex le nails](http://alexlenail.me/NN-SVG/AlexNet.html) 
 [tds_mel_spectrogram]: https://towardsdatascience.com/getting-to-know-the-mel-spectrogram-31bca3e2d9d0
 [mel_scale]: https://en.wikipedia.org/wiki/Mel_scale
 [gla]: https://paperswithcode.com/method/griffin-lim-algorithm
+[upsampling_article]: https://machinelearningmastery.com/upsampling-and-transpose-convolution-layers-for-generative-adversarial-networks/
+[upsample_layer]: https://pytorch.org/docs/stable/generated/torch.nn.Upsample.html
 
 [spectrogram]: https://upload.wikimedia.org/wikipedia/commons/2/29/Spectrogram_of_violin.png
