@@ -19,7 +19,7 @@ epochs_to_run = 1600
 save_every = 400
 sample_rate = 22050
 window_length = 2048
-y_size = 500
+y_size = 512
 batch_size = 16
 
 transformations = transforms.transforms.Compose([

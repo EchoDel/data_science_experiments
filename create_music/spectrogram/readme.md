@@ -106,15 +106,38 @@ Diagram produced with [Alex le nails](http://alexlenail.me/NN-SVG/AlexNet.html) 
 
 ## Research on the modelling problem
 
-The main options for how to increase the height and width of the output tensor is to either;
+Pytorch seems to provide 2 layers which can be used as a solution to this the [Pixel Shuffle][pixel_shuffle] and [upsample][upsample_layer]
 
-1. repeat elements of an input tensor
-1. use and algorithm to infill based on the input vector
+Research around this problem appears to be focused on upsampling images to higher resolutions while maintaining the visual fidelity.
+Research by [Bee Lim et Al.][image_upsampling] uses a single upsampling layer for increasing image size by two to three times, and an additional layer when upscaling by four time.
+Unfortunately for this application we are upsampling by 250 times with the current linear first layer, although the same level of detail is not needed.
+We could introduce additional linear layers to reduce the upsampling ratio is lower but this will increase the size of the model drastically for minimal benefit compared to careful crafted convolution layers.
 
-# Algorithms
+Since this relies on a late upsampling layer, which would need to be very large, this would put a large focus on a few inputs focused in the local area which would limit the accuracy of this approach due to the nature of the spectrogram.
+Additionally, the detail of the input tensor is not required for the final output so there is limited benefits for this approach although having the passthrough and feature creation before the upsampling layer could still be used.
+
+[Wenzhe Shi et al][pixel_shuffle_paper] introduced a new layer called the pixel shuffle to provide a quick layer for transposing between a sparse layer and the final output.
+This layer rearranges elements in a tensor of shape (∗,C×r2,H,W) to a tensor of shape (∗,C,H×r,W×r).
+The main advantage of this method as stated in the paper is not requiring any layers to be in the high resolution space instead relying on smaller convolution layers.
+Based on the conclusions from this paper this layer should be able to provide the required outputs and if the value of r is carefully crafted based on the input spectrogram then we could see very promising results.
+
+## Experimenting with the r value
+
+Expecting the final output to be 128 by 512, since the maths is both simpler now but also cleaner when transformed in to the network, and have a single channel we have a few options for r presented below.
+
+| r  | w_in | h_in | c  |
+|----|------|------|----|
+| 2  | 256  | 64   | 2  |
+| 4  | 128  | 32   | 4  |
+| 8  | 64   | 16   | 8  |
+| 16 | 32   | 8    | 16 |
+| 32 | 16   | 4    | 32 |
+| 64 | 8    | 2    | 64 |
+
+None of these seem outlandish options but do encourage a non-square input from the linear layer. 
 
 
-Based on an [article][upsampling] from machine learning mastery the [Upsample][upsample_layer] layer can be used to interpolate an input into a higher resolution which could be used for this application.
+
 
 # References
 
@@ -126,5 +149,8 @@ Based on an [article][upsampling] from machine learning mastery the [Upsample][u
 [gla]: https://paperswithcode.com/method/griffin-lim-algorithm
 [upsampling_article]: https://machinelearningmastery.com/upsampling-and-transpose-convolution-layers-for-generative-adversarial-networks/
 [upsample_layer]: https://pytorch.org/docs/stable/generated/torch.nn.Upsample.html
+[pixel_shuffle]: https://pytorch.org/docs/stable/generated/torch.nn.PixelShuffle.html
+[image_upsampling]: https://arxiv.org/abs/1707.02921
+[pixel_shuffle_paper]: https://arxiv.org/pdf/1609.05158v2.pdf
 
 [spectrogram]: https://upload.wikimedia.org/wikipedia/commons/2/29/Spectrogram_of_violin.png
