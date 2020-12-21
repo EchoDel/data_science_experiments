@@ -117,7 +117,11 @@ Since this relies on a late upsampling layer, which would need to be very large,
 Additionally, the detail of the input tensor is not required for the final output so there is limited benefits for this approach although having the passthrough and feature creation before the upsampling layer could still be used.
 
 [Wenzhe Shi et al][pixel_shuffle_paper] introduced a new layer called the pixel shuffle to provide a quick layer for transposing between a sparse layer and the final output.
-This layer rearranges elements in a tensor of shape (∗,C×r2,H,W) to a tensor of shape (∗,C,H×r,W×r).
+This layer rearranges elements in a tensor of shape (∗,C×r2,H,W) to a tensor of shape (∗,C,H×r,W×r) per the image below.
+
+![Pixel Shuffle](https://github.com/redparry/data_science_experiments/blob/master/create_music/spectrogram/contents/model_1_architecture.png "Pixel Shuffle")
+
+
 The main advantage of this method as stated in the paper is not requiring any layers to be in the high resolution space instead relying on smaller convolution layers.
 Based on the conclusions from this paper this layer should be able to provide the required outputs and if the value of r is carefully crafted based on the input spectrogram then we could see very promising results.
 
