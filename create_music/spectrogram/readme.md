@@ -5,7 +5,7 @@ Builds a network using an input of switches.
 Based on the approach taken making garfield comic strips be [CodeParade][1]
 Source code: https://github.com/HackerPoet/Avant-Garfield
 
-Samples taken from https://freemusicarchive.org/genre/Lo-fi
+Samples taken from https://freemusicarchive.org/genre/Lo-fi and https://github.com/mdeff/fma
 
 # Training On Spectrogram
 
@@ -139,6 +139,10 @@ Expecting the final output to be 128 by 512, since the maths is both simpler now
 | 64 | 8    | 2    | 64 |
 
 None of these seem outlandish options but do encourage a non-square input from the linear layer. 
+
+## Reviewing an optimal r value
+
+
 
 
 
