@@ -14,9 +14,13 @@ window = windows.hamming(window_length, sym=False)
 
 def calculate_spacing(index):
     filename = fmautils.get_audio_path(AUDIO_DIR, index)
-    print('File: {}'.format(filename))
 
-    x, sr = librosa.load(filename, sr=None, mono=True)
+    try:
+        x, sr = librosa.load(filename, sr=None, mono=True)
+    except Exception as E:
+        print(filename)
+        print(E)
+        return np.nan
 
     spectrogram = librosa.feature.melspectrogram(x,
                                                  sr=sr,
