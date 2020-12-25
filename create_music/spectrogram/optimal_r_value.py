@@ -1,18 +1,49 @@
-import math
+from scipy.signal import windows, argrelextrema
 
-from scipy.signal import windows, butter, sosfilt, argrelextrema
-from statsmodels.nonparametric.smoothers_lowess import lowess
+from create_music.spectrogram import helper_functions
 from fma import utils as fmautils
 import librosa
 import librosa.display
 from pathlib import Path
-import seaborn
 import numpy as np
-import numpy_indexed as npi
 import matplotlib.pyplot as plt
 
 window_length = 2048
 window = windows.hamming(window_length, sym=False)
+
+
+def calculate_spacing(index):
+    filename = fmautils.get_audio_path(AUDIO_DIR, index)
+    print('File: {}'.format(filename))
+
+    x, sr = librosa.load(filename, sr=None, mono=True)
+
+    spectrogram = librosa.feature.melspectrogram(x,
+                                                 sr=sr,
+                                                 n_fft=window_length,
+                                                 hop_length=round(0.25 * window_length),
+                                                 window=window,
+                                                 power=1.0)
+
+    optimal_r = []
+
+    for x in range(spectrogram.shape[1]):
+        # Smooth the data with a hanning window
+        # https://scipy-cookbook.readthedocs.io/items/SignalSmooth.html
+        smoothed_data = helper_functions.smooth(spectrogram[:, x], window_len=9)
+
+        # find the maximum
+        maximums = argrelextrema(smoothed_data, np.greater)[0]
+
+        # select only the low ones
+        low_maximums = maximums[maximums < 64]
+
+        # select ones with more than 4 since we don't want the double peaks
+        differences = np.diff(low_maximums)
+        differences = differences[differences > 4]
+
+        optimal_r.append(np.mean(differences))
+    return np.mean(optimal_r)
 
 
 AUDIO_DIR = Path('../data/fma_medium')
@@ -22,52 +53,10 @@ genres = fmautils.load('fma/data/fma_metadata/genres.csv')
 features = fmautils.load('fma/data/fma_metadata/features.csv')
 
 medium = tracks[tracks['set', 'subset'] <= 'medium']
+medium = medium.copy()
 
+medium['r_value'] = medium.index.map(calculate_spacing)
 
-filename = fmautils.get_audio_path(AUDIO_DIR, 1014)
-print('File: {}'.format(filename))
-
-x, sr = librosa.load(filename, sr=None, mono=True)
-
-spectrogram = librosa.feature.melspectrogram(x,
-                                             sr=sr,
-                                             n_fft=window_length,
-                                             hop_length=round(0.25 * window_length),
-                                             window=window,
-                                             power=1.0)
-
-seaborn.heatmap(spectrogram)
-
-librosa.display.specshow(librosa.power_to_db(spectrogram))
-
-
-
-
-group_list = list(range(len(spectrogram[:,93])))
-group_list = np.array([math.floor(x/8) for x in group_list])
-
-for x in range(spectrogram.shape[1]):
-    values = np.concatenate(([group_list], [spectrogram[:, x]]), axis=0)
-    y = npi.group_by(values[0, :]).argmax(values[1, :])
-
-
-# trying loess filter
-
-loess_data = lowess(spectrogram[:,93], range(len(spectrogram[:,93])), 0.07)[:,1]
-
-plt.plot(range(len(spectrogram[:,93])),
-         loess_data)
-plt.plot(range(len(spectrogram[:,93])),
-         spectrogram[:,93])
-
-
-
-
-maximums = argrelextrema(loess_data, np.greater)
-
-
-
-group_list = list(range(len(spectrogram[:,93])))
-group_list = np.array([math.floor(x/8) for x in group_list])
+medium.to_csv('create_music/spectrogram/tracks_r_value.csv', index=False)
 
 
