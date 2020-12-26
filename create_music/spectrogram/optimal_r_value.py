@@ -12,7 +12,7 @@ window_length = 2048
 window = windows.hamming(window_length, sym=False)
 
 
-def calculate_spacing(index):
+def calculate_spacing(index, n_mels):
     filename = fmautils.get_audio_path(AUDIO_DIR, index)
 
     try:
@@ -27,7 +27,8 @@ def calculate_spacing(index):
                                                  n_fft=window_length,
                                                  hop_length=round(0.25 * window_length),
                                                  window=window,
-                                                 power=1.0)
+                                                 power=1.0,
+                                                 n_mels=n_mels)
 
     optimal_r = []
 
@@ -59,8 +60,13 @@ features = fmautils.load('fma/data/fma_metadata/features.csv')
 medium = tracks[tracks['set', 'subset'] <= 'medium']
 medium = medium.copy()
 
-medium['r_value'] = medium.index.map(calculate_spacing)
+medium[('r_value', '128')] = medium.index.map(lambda x: calculate_spacing(x, n_mels=128))
+medium[('r_value', '256')] = medium.index.map(lambda x: calculate_spacing(x, n_mels=256))
+medium[('r_value', '376')] = medium.index.map(lambda x: calculate_spacing(x, n_mels=376))
 
 medium.to_csv('create_music/spectrogram/tracks_r_value.csv', index=False)
 
 
+medium.groupby(('track', 'genre_top')).agg({('r_value', '128'): 'mean',
+                                            ('r_value', '256'): 'mean',
+                                            ('r_value', '376'): 'mean'})
