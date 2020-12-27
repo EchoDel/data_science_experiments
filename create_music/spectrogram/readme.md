@@ -5,7 +5,7 @@ Builds a network using an input of switches.
 Based on the approach taken making garfield comic strips be [CodeParade][1]
 Source code: https://github.com/HackerPoet/Avant-Garfield
 
-Samples taken from https://freemusicarchive.org/genre/Lo-fi and https://github.com/mdeff/fma
+Samples taken from https://freemusicarchive.org/genre/Lo-fi and [https://github.com/mdeff/fma][fma]
 
 # Training On Spectrogram
 
@@ -142,15 +142,41 @@ None of these seem outlandish options but do encourage a non-square input from t
 
 ## Reviewing an optimal r value
 
+By building a network where the value of r lines up with the features of the spectrogram we can reduce the complexity needed to represent the sound file.
+Looking at a single slice in the y-axis of the spectrogram we can view how the frequencies behave, while looking at a slice in the x-axis we can view how a single frequency bin changes through time.
 
+By applying a smoothing function we can isolate peaks in this frequency space and use this to find a value of R which assists in reducing complexity.
 
+![R Value Selection Methodology](https://github.com/redparry/data_science_experiments/blob/master/create_music/spectrogram/contents/maximum_method.png "R Value Selection Methodology")
 
+By applying this methodology to every song in the [FMA][fma] dataset we can review the spacing of the peak bins for each genre of music.
+
+|                     | Number of Mel Bins |           |           |
+|---------------------|--------------------|-----------|-----------|
+| Genre               | 128                | 256       | 376       |
+| Blues               | 9.776519           | 10.466529 | 11.048715 |
+| Classical           | 9.445438           | 10.281861 | 11.133495 |
+| Country             | 9.417068           | 10.209733 | 10.883857 |
+| Easy Listening      | 9.619260           | 10.549158 | 11.202891 |
+| Electronic          | 9.898080           | 10.553847 | 11.178221 |
+| Experimental        | 10.140876          | 10.435048 | 11.036390 |
+| Folk                | 9.548307           | 10.234059 | 10.936484 |
+| Hip-Hop             | 9.953301           | 10.800591 | 11.648263 |
+| Instrumental        | 9.766309           | 10.272068 | 10.947846 |
+| International       | 9.514019           | 10.702662 | 11.357054 |
+| Jazz                | 9.726295           | 10.572337 | 11.125786 |
+| Old-Time / Historic | 9.302981           | 11.084530 | 11.776724 |
+| Pop                 | 9.612725           | 10.309401 | 10.936965 |
+| Rock                | 9.789808           | 10.247280 | 10.688223 |
+| Soul-RnB            | 9.925094           | 10.684132 | 11.129260 |
+| Spoken              | 10.913254          | 10.286118 | 11.531974 |
 
 
 # References
 
 [1]: https://www.youtube.com/watch?v=wXWKWyALxYM
 [2]: https://medium.com/better-programming/how-to-build-a-deep-audio-de-noiser-using-tensorflow-2-0-79c1c1aea299
+[fma]: https://github.com/mdeff/fma
 [mel_scale_paper]: https://archive.is/20130414065947/http://asadl.org/jasa/resource/1/jasman/v8/i3/p185_s1
 [tds_mel_spectrogram]: https://towardsdatascience.com/getting-to-know-the-mel-spectrogram-31bca3e2d9d0
 [mel_scale]: https://en.wikipedia.org/wiki/Mel_scale
