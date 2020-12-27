@@ -41,7 +41,7 @@ def calculate_spacing(index, n_mels):
         maximums = argrelextrema(smoothed_data, np.greater)[0]
 
         # select only the low ones
-        low_maximums = maximums[maximums < 64]
+        low_maximums = maximums[maximums < n_mels / 2]
 
         # select ones with more than 4 since we don't want the double peaks
         differences = np.diff(low_maximums)
