@@ -97,3 +97,23 @@ plt.plot(x_values, smoothed_data)
 plt.scatter(maximums, [plotting_data[i] for i in maximums], marker='o')
 plt.legend(['Spectrogram Slice', 'Smoothed Slice', 'Maximums'])
 plt.savefig(fname='create_music/spectrogram/contents/maximum_method.png')
+
+
+# plot to see how the graph looks with different n mel values
+n_mels = [128, 256, 374]
+plt_index = 100
+
+for n_mel in n_mels:
+    window_len = int(round(9*n_mel/128))
+    spectrogram = get_spectrogram(2, n_mel)
+    plotting_data = spectrogram[:, plt_index]
+    x_values = [value / n_mel for value in range(len(plotting_data))]
+    smoothed_data = helper_functions.smooth(plotting_data, window_len=window_len)
+
+    plt.plot(x_values, smoothed_data)
+
+maximums = argrelextrema(smoothed_data, np.greater)[0]
+plt.scatter([value / n_mel for value in maximums], [smoothed_data[i] for i in maximums], marker='o')
+
+plt.legend(n_mels)
+
