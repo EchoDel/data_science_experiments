@@ -36,15 +36,17 @@ def get_spectrogram(index, n_mels):
 
     return spectrogram
 
+
 def calculate_spacing(index, n_mels):
     spectrogram = get_spectrogram(index, n_mels)
 
     optimal_r = []
+    window_len = int(round(9*n_mels/128))
 
     for x in range(spectrogram.shape[1]):
         # Smooth the data with a hanning window
         # https://scipy-cookbook.readthedocs.io/items/SignalSmooth.html
-        smoothed_data = helper_functions.smooth(spectrogram[:, x], window_len=9)
+        smoothed_data = helper_functions.smooth(spectrogram[:, x], window_len=window_len)
 
         # find the maximum
         maximums = argrelextrema(smoothed_data, np.greater)[0]
