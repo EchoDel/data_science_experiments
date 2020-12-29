@@ -119,7 +119,7 @@ Additionally, the detail of the input tensor is not required for the final outpu
 [Wenzhe Shi et al][pixel_shuffle_paper] introduced a new layer called the pixel shuffle to provide a quick layer for transposing between a sparse layer and the final output.
 This layer rearranges elements in a tensor of shape (∗,C×r2,H,W) to a tensor of shape (∗,C,H×r,W×r) per the image below.
 
-![Pixel Shuffle](https://github.com/redparry/data_science_experiments/blob/master/create_music/spectrogram/contents/model_1_architecture.png "Pixel Shuffle")
+![Pixel Shuffle](https://github.com/redparry/data_science_experiments/blob/master/create_music/spectrogram/contents/pixel_shuffle_image.png "Pixel Shuffle")
 
 
 The main advantage of this method as stated in the paper is not requiring any layers to be in the high resolution space instead relying on smaller convolution layers.
@@ -150,6 +150,7 @@ By applying a smoothing function we can isolate peaks in this frequency space an
 ![R Value Selection Methodology](https://github.com/redparry/data_science_experiments/blob/master/create_music/spectrogram/contents/maximum_method.png "R Value Selection Methodology")
 
 By applying this methodology to every song in the [FMA][fma] dataset we can review the spacing of the peak bins for each genre of music.
+
 
 |                     | Number of Mel Bins |           |           |
 |---------------------|--------------------|-----------|-----------|
