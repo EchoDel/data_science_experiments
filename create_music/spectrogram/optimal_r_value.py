@@ -1,3 +1,4 @@
+import math
 from scipy.signal import windows, argrelextrema
 
 from create_music.spectrogram import helper_functions
@@ -41,7 +42,7 @@ def calculate_spacing(index, n_mels):
     spectrogram = get_spectrogram(index, n_mels)
 
     optimal_r = []
-    window_len = int(round(9*n_mels/128))
+    window_len = int(round(math.sqrt(n_mel)))
 
     for x in range(spectrogram.shape[1]):
         # Smooth the data with a hanning window
@@ -104,7 +105,7 @@ n_mels = [128, 256, 374]
 plt_index = 100
 
 for n_mel in n_mels:
-    window_len = int(round(9*n_mel/128))
+    window_len = int(round(math.sqrt(n_mel)))
     spectrogram = get_spectrogram(2, n_mel)
     plotting_data = spectrogram[:, plt_index]
     x_values = [value / n_mel for value in range(len(plotting_data))]
@@ -116,4 +117,3 @@ maximums = argrelextrema(smoothed_data, np.greater)[0]
 plt.scatter([value / n_mel for value in maximums], [smoothed_data[i] for i in maximums], marker='o')
 
 plt.legend(n_mels)
-
