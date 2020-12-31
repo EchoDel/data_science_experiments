@@ -42,7 +42,7 @@ def calculate_spacing(index, n_mels):
     spectrogram = get_spectrogram(index, n_mels)
 
     optimal_r = []
-    window_len = int(round(math.sqrt(n_mel)))
+    window_len = int(round(math.sqrt(n_mels)))
 
     for x in range(spectrogram.shape[1]):
         # Smooth the data with a hanning window

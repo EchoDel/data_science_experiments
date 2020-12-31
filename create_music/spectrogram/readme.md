@@ -104,7 +104,11 @@ As such this network will never be able to produce a suitable output, so a new a
 
 Diagram produced with [Alex le nails](http://alexlenail.me/NN-SVG/AlexNet.html) neural network tool.
 
-## Research on the modelling problem
+## Second Model
+
+With the failure of the first model research was conducted on what techniques others have used in literature to acheive similar results.
+
+### Research on the modelling problem
 
 Pytorch seems to provide 2 layers which can be used as a solution to this the [Pixel Shuffle][pixel_shuffle] and [upsample][upsample_layer]
 
@@ -125,7 +129,7 @@ This layer rearranges elements in a tensor of shape (∗,C×r2,H,W) to a tensor 
 The main advantage of this method as stated in the paper is not requiring any layers to be in the high resolution space instead relying on smaller convolution layers.
 Based on the conclusions from this paper this layer should be able to provide the required outputs and if the value of r is carefully crafted based on the input spectrogram then we could see very promising results.
 
-## Experimenting with the r value
+### Experimenting with the r value
 
 Expecting the final output to be 128 by 512, since the maths is both simpler now but also cleaner when transformed in to the network, and have a single channel we have a few options for r presented below.
 
@@ -140,7 +144,7 @@ Expecting the final output to be 128 by 512, since the maths is both simpler now
 
 None of these seem outlandish options but do encourage a non-square input from the linear layer. 
 
-## Reviewing an optimal r value
+### Reviewing an optimal r value
 
 By building a network where the value of r lines up with the features of the spectrogram we can reduce the complexity needed to represent the sound file.
 Looking at a single slice in the y-axis of the spectrogram we can view how the frequencies behave, while looking at a slice in the x-axis we can view how a single frequency bin changes through time.
@@ -151,26 +155,30 @@ By applying a smoothing function we can isolate peaks in this frequency space an
 
 By applying this methodology to every song in the [FMA][fma] dataset we can review the spacing of the peak bins for each genre of music.
 
-
-|                     | Number of Mel Bins |           |           |
+|                     | number of mel bins |           |           |
 |---------------------|--------------------|-----------|-----------|
 | Genre               | 128                | 256       | 376       |
-| Blues               | 9.776519           | 10.466529 | 11.048715 |
-| Classical           | 9.445438           | 10.281861 | 11.133495 |
-| Country             | 9.417068           | 10.209733 | 10.883857 |
-| Easy Listening      | 9.619260           | 10.549158 | 11.202891 |
-| Electronic          | 9.898080           | 10.553847 | 11.178221 |
-| Experimental        | 10.140876          | 10.435048 | 11.036390 |
-| Folk                | 9.548307           | 10.234059 | 10.936484 |
-| Hip-Hop             | 9.953301           | 10.800591 | 11.648263 |
-| Instrumental        | 9.766309           | 10.272068 | 10.947846 |
-| International       | 9.514019           | 10.702662 | 11.357054 |
-| Jazz                | 9.726295           | 10.572337 | 11.125786 |
-| Old-Time / Historic | 9.302981           | 11.084530 | 11.776724 |
-| Pop                 | 9.612725           | 10.309401 | 10.936965 |
-| Rock                | 9.789808           | 10.247280 | 10.688223 |
-| Soul-RnB            | 9.925094           | 10.684132 | 11.129260 |
-| Spoken              | 10.913254          | 10.286118 | 11.531974 |
+| Blues               | 11.878658          | 17.203083 | 20.608692 |
+| Classical           | 11.457404          | 16.681236 | 19.949109 |
+| Country             | 11.440129          | 16.581485 | 19.871212 |
+| Easy Listening      | 11.251914          | 17.077822 | 20.722105 |
+| Electronic          | 11.749551          | 17.558706 | 20.939769 |
+| Experimental        | 12.186012          | 17.854416 | 21.178206 |
+| Folk                | 11.783293          | 16.667163 | 19.815720 |
+| Hip-Hop             | 11.974557          | 17.551491 | 20.928376 |
+| Instrumental        | 11.761550          | 17.211259 | 20.362515 |
+| International       | 11.337527          | 16.966899 | 20.511056 |
+| Jazz                | 11.673325          | 17.240927 | 20.722238 |
+| Old-Time / Historic | 11.190302          | 16.637667 | 20.573574 |
+| Pop                 | 11.639986          | 16.950981 | 20.220419 |
+| Rock                | 11.865741          | 17.195298 | 20.414083 |
+| Soul-RnB            | 11.976765          | 17.544161 | 20.891186 |
+| Spoken              | 13.143180          | 18.741906 | 21.604005 |
+
+There seems to be a small change between the number of bins selected, and the spacing of the maxima but this change seems to be mainly driven by the size of the window function.
+
+Based on this the upscaling layer will be used to reshape a tensor of shape (N, 512, 17, 17) into a tensor of shape (N, 1, 512, 289) using a technique akin to pixel shuffle but rewritten to take the right inputs and outputs as required.
+This will then have an additional convolution layer which reduces this into a tensor of shape (N, 1, 500, 256) output layer.
 
 
 # References
