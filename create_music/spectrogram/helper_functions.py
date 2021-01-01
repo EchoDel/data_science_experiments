@@ -170,39 +170,45 @@ class SongIngestion(torch.utils.data.Dataset):
 
 
 class SoundGenerator(nn.Module):
-    def __init__(self, inputs, final_x, final_y) -> None:
+    def __init__(self, inputs) -> None:
         super(SoundGenerator, self).__init__()
-        self.final_x = final_x
-        self.final_y = final_y
-        self.padding_x = round((self.final_x-2)/2)
-        self.padding_y = round((self.final_y-2)/2)
-        self.padding = self.padding_y
 
-        self.fc = nn.Linear(inputs, 256)
+        self.first_layer = nn.Sequential(
+            nn.Linear(inputs, 4096),
+            nn.ELU(inplace=True),
+            nn.Dropout()
+        )
 
         self.features = nn.Sequential(
-            nn.Conv2d(1, 64, kernel_size=4, stride=2, padding=2),
+            nn.Conv2d(1, 64, kernel_size=4, stride=1, padding=2),
             nn.ReLU(inplace=True),
-            nn.MaxPool2d(kernel_size=3, stride=2),
             nn.Dropout(),
-            nn.Conv2d(64, 128, kernel_size=3, padding=1),
+            nn.Conv2d(64, 128, kernel_size=4, padding=1, dilation=2),
             nn.ReLU(inplace=True),
-            nn.Conv2d(128, 256, kernel_size=3, padding=1),
-            nn.ELU(inplace=True),
+            nn.Conv2d(128, 256, kernel_size=4, padding=1),
+            nn.ReLU(inplace=True),
             nn.Dropout(),
-            nn.Conv2d(256, 384, kernel_size=3, stride=2, padding=(1, 3)),
-            nn.ELU(inplace=True),
+            nn.Conv2d(256, 384, kernel_size=4, stride=2, dilation=2),
+            nn.ReLU(inplace=True),
+            nn.Conv2d(384, 512, kernel_size=4, stride=1, dilation=3),
+            nn.ReLU(inplace=True),
+        )
+
+        self.upsample = nn.Sequential(
+            # todo rewrite to be more in line with the music theory
+            nn.Flatten(2)
         )
 
         self.output_layer = nn.Sequential(
             nn.Dropout(),
-            nn.Conv2d(384, final_x, kernel_size=2, padding=self.padding, stride=1,)
+            nn.Conv2d(1, 1, kernel_size=(7, 12), padding=0, stride=1, dilation=(2, 3))
         )
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
-        x = self.fc(x)
-        x = x.view(x.size(0), 1, 16, 16)
+        x = self.first_layer(x)
+        x = x.view(x.size(0), 1, 64, 64)
         x = self.features(x)
-        #x = x.view(x.size(0), 128, 384, 1)
+        x = self.upsample(x)
+        x = x.view(x.size(0), 1, 512, 289)
         x = self.output_layer(x)
         return x

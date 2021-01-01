@@ -180,6 +180,67 @@ There seems to be a small change between the number of bins selected, and the sp
 Based on this the upscaling layer will be used to reshape a tensor of shape (N, 512, 17, 17) into a tensor of shape (N, 1, 512, 289) using a technique akin to pixel shuffle but rewritten to take the right inputs and outputs as required.
 This will then have an additional convolution layer which reduces this into a tensor of shape (N, 1, 500, 256) output layer.
 
+### Model Design
+
+#### First layer
+This layer takes the single bit inputs and returns a common shape of tensor which is reshaped into a rectangle to feed into the convolutional layers.
+With 25000 songs in the sample, and a final output before the upsampling of 17 by 17, we require a reasonably large linear layer to capture the required information.
+For this reason a starting point for this layer will be a 25000 inputs and 4096 output. This equates to a 32 by 32 once it has been reshaped.
+
+For now this layer is transformed simply using the tensor.view function from pytorch but this may be more efficient if a different shaping layer is used.
+
+#### Feature Creation Layers
+
+This layer will need to transform the (N, 1, 32, 32) tensor into a (N, 512, 17, 17) tensor through a series of convolutions.
+Since this is an akin to an image upsampling task where all the detail is required the layers from the [Bee Lim et Al.][image_upsampling] paper were taken as insperation, but the original input is not required so no addition step will be applied.
+
+Since we are going from one channel to 512 channels 5 convolution layers were selected with dropouts after the first and third layer.
+
+#### Upsampling
+
+Based on the experiments in the script upsampling_layer_test.py the [Flatten](https://pytorch.org/docs/stable/generated/torch.flatten.html) layer performs the correct reshape of the input tensor so has been selected for now.
+This layer will unwrap the final two layers of the tensor into a single lien in the output tensor.
+
+#### Output Layer
+
+The layer will take the input tensor of shape of (1, 512, 289), and needs to return a tensor of shape (1, 512, 256). 
+Using a 2d convolution layer we can calculate the possible options for the parameters of this layer using the equation below
+
+![Pytorch convolution shape function](https://discuss.pytorch.org/uploads/default/optimized/2X/f/fab7651734d4000309a49736e88fc8e8b0bc2221_2_690x151.png "PyTorch convolution layer shape formulae")
+
+Knowing that p will be zero since we require all the information present at the end, and s will be 1 since we don't want to reduce the size of the input tensor much we can reduce this formulae to;
+
+![33=kd-d](https%3A%2F%2Flatex.codecogs.com%2Fsvg.latex%3F%5CLarge%26space%3B33%3Dkd-d "33=kd-d")
+
+| Parameter | 1   | 2   | 3   | 4   |
+|-----------|-----|-----|-----|-----|
+| Hin       | 289 | 289 | 289 | 289 |
+| Hout      | 256 | 256 | 256 | 256 |
+| s         | 1   | 1   | 1   | 1   |
+| p         | 0   | 0   | 0   | 0   |
+| k         | 2   | 4   | 12  | 34  |
+| d         | 33  | 11  | 3   | 1   |
+
+Performing the same calculation on the width the formulae is reduced to;
+
+![12=kd-d](https%3A%2F%2Flatex.codecogs.com%2Fsvg.latex%3F%5CLarge%26space%3B12%3Dkd-d "12=kd-d")
+
+| Parameter | 1   | 2   | 3   | 4   | 5   | 6   |
+|-----------|-----|-----|-----|-----|-----|-----|
+| Win       | 512 | 512 | 512 | 512 | 512 | 512 |
+| Wout      | 500 | 500 | 500 | 500 | 500 | 500 |
+| s         | 1   | 1   | 1   | 1   | 1   | 1   |
+| p         | 0   | 0   | 0   | 0   | 0   | 0   |
+| k         | 13  | 7   | 5   | 4   | 3   | 2   |
+| d         | 1   | 2   | 3   | 4   | 6   | 12  |
+
+In the future this equation would be incorporated into the class so it and a pair would be selected based on experiments to increase how generic this model is.
+
+For now the second lowest value of d was selected, and the corresponding k value. 
+
+d = (3, 2)
+
+k = (12, 7)
 
 # References
 
@@ -197,3 +258,5 @@ This will then have an additional convolution layer which reduces this into a te
 [pixel_shuffle_paper]: https://arxiv.org/pdf/1609.05158v2.pdf
 
 [spectrogram]: https://upload.wikimedia.org/wikipedia/commons/2/29/Spectrogram_of_violin.png
+
+Tables generated using [Tables Generator](https://www.tablesgenerator.com/markdown_tables)
