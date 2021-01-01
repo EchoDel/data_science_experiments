@@ -182,7 +182,7 @@ class SoundGenerator(nn.Module):
             nn.Dropout(),
             nn.Conv2d(64, 128, kernel_size=4, padding=1, dilation=2),
             nn.ReLU(inplace=True),
-            nn.Conv2d(128, 256, kernel_size=4, padding=1),
+            nn.Conv2d(128, 256, kernel_size=4, padding=1, dilation=2),
             nn.ReLU(inplace=True),
             nn.Dropout(),
             nn.Conv2d(256, 384, kernel_size=4, stride=2, dilation=2),
