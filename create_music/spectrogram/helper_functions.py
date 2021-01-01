@@ -7,7 +7,6 @@ import torch
 import torch.nn as nn
 from scipy.signal.windows import hamming
 from torch import tensor
-import torch.nn.functional as F
 
 
 def smooth(x, window_len=11, window='hanning'):
@@ -66,12 +65,6 @@ def smooth(x, window_len=11, window='hanning'):
     return y[final_output:(final_output + len(x))]
 
 
-def load_metadata(path: Path):
-    files = [x for x in path.glob("*.mp3")]
-    metadata = pd.DataFrame({'Path': files})
-    return metadata
-
-
 def load_sound_file(path, sr):
     try:
         data, rate = librosa.load(path,
@@ -99,9 +92,10 @@ def create_output(model: nn.Module, switches: list):
 
 
 class SongIngestion(torch.utils.data.Dataset):
-    def __init__(self, folder, sample_length, transformations, sr, window_length, y_size, seed=1994):
+    def __init__(self, metadata, sample_length, transformations, sr, window_length, y_size, n_mels, seed=1994):
         super(SongIngestion).__init__()
-        self.metadata = load_metadata(folder)
+        self.metadata = metadata
+        self.n_mels = n_mels
 
         rand.seed(seed)
         np.random.seed(seed)
@@ -126,9 +120,9 @@ class SongIngestion(torch.utils.data.Dataset):
     def load_sound_file(self, itemid):
         if itemid not in self.sound_files:
             if self.print_n % 100 == 0:
-                self.metadata.iloc[itemid, 0]
+                self.metadata.iloc[itemid, -1]
             self.print_n += 1
-            self.sound_files[itemid] = load_sound_file(self.metadata.iloc[itemid, 0], self.sr)
+            self.sound_files[itemid] = load_sound_file(self.metadata.iloc[itemid, -1], self.sr)
         return self.sound_files[itemid]
 
     def load_spectrogram(self, data, rate):
@@ -136,7 +130,8 @@ class SongIngestion(torch.utils.data.Dataset):
                                                          sr=rate,
                                                          n_fft=self.window_length,
                                                          hop_length=round(0.25 * self.window_length),
-                                                         window=self.window)
+                                                         window=self.window,
+                                                         n_mels=self.n_mels)
         return frequency_graph
 
     def subsample(self, sample):
@@ -149,6 +144,8 @@ class SongIngestion(torch.utils.data.Dataset):
         sample, rate = self.load_sound_file(index)
         sample = self.load_spectrogram(sample, rate)
         sample = self.subsample(sample)
+        # added a transpose to match the output of the neural network
+        sample = np.transpose(sample)
         sample = tensor(sample).float()
         sample = self.transformations(sample)
         return sample

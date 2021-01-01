@@ -5,11 +5,20 @@ from create_music.spectrogram import helper_functions
 import torch
 from torch import nn
 from torch import optim
-from torchvision import models, transforms
+from torchvision import transforms
+from fma import utils as fmautils
 
 from matplotlib import pyplot as plt
 
-folder = Path('../music')
+# load the metadata for the fma dataset
+fma_base = Path('fma/data/fma_metadata')
+AUDIO_DIR = Path('../data/fma_medium')
+folder = fma_base / 'tracks.csv'
+tracks = fmautils.load(fma_base / 'tracks.csv')
+medium = tracks[tracks['set', 'subset'] <= 'medium']
+medium = medium.copy()
+medium[('path', '')] = medium.index.map(lambda x: Path(fmautils.get_audio_path(AUDIO_DIR, x)))
+
 device = 'cpu'
 sample_length = 32768
 model_name = 'music_creation'
@@ -19,7 +28,7 @@ epochs_to_run = 1600
 save_every = 400
 sample_rate = 22050
 window_length = 2048
-y_size = 512
+y_size = 500
 batch_size = 16
 
 transformations = transforms.transforms.Compose([
@@ -28,12 +37,13 @@ transformations = transforms.transforms.Compose([
 ])
 
 train_loader = torch.utils.data.DataLoader(
-    helper_functions.SongIngestion(Path(folder),
+    helper_functions.SongIngestion(medium,
                                    sample_length=sample_length,
                                    transformations=transformations,
                                    sr=sample_rate,
                                    window_length=window_length,
-                                   y_size=y_size),
+                                   y_size=y_size,
+                                   n_mels=256),
     batch_size=batch_size)
 
 
@@ -48,9 +58,7 @@ if config_file.exists():
 
     model = torch.load(model_path)
 else:
-    model = helper_functions.SoundGenerator(inputs=len(train_loader.dataset),
-                                            final_x=128,
-                                            final_y=y_size)
+    model = helper_functions.SoundGenerator(inputs=len(train_loader.dataset))
     metadata = {}
     starting_iteration = 0
 
@@ -74,7 +82,7 @@ for epoch in range(epochs_to_run):
         inputs, results = inputs.to(device).float(), results.to(device)
         optimizer.zero_grad()
         logps = model(inputs)
-        logps = logps.reshape([logps.shape[0], 128, y_size])
+        logps = logps.reshape([logps.shape[0], y_size, 256])
         loss = criterion(logps, results.type_as(logps))
         loss.backward()
         optimizer.step()
