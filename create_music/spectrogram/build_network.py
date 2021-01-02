@@ -107,13 +107,3 @@ for epoch in range(epochs_to_run):
 
         with open(config_file, 'w') as outfile:
             json.dump(metadata, outfile)
-
-
-for results, song_identifier, sample_location in train_loader:
-    if 'x' in globals():
-        y = song_identifier
-        break
-    x = song_identifier
-    print(train_loader.dataset.n)
-
-
