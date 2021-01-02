@@ -151,7 +151,7 @@ class SongIngestion(torch.utils.data.Dataset):
         return sample
 
     def __next__(self):
-        if self.n <= self.end:
+        if self.n < self.end:
             sample = self.load_sample(self.n)
             self.n += 1
             return sample, self.onehot(self.n)
