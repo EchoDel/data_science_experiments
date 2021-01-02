@@ -20,11 +20,14 @@ medium = medium.copy()
 medium[('path', '')] = medium.index.map(lambda x: Path(fmautils.get_audio_path(AUDIO_DIR, x)))
 
 device = 'cpu'
+medium_rock = medium[medium[('track', 'genre_top')] == 'Rock']
+medium_rock = medium_rock.sample(100)
+
 sample_length = 32768
-model_name = 'music_creation'
+model_name = 'medium_rock'
 metadata_file = 'lofi_spectrogram'
-config_file = Path(f'models/{metadata_file}/metadata{model_name}.json')
 epochs_to_run = 1600
+config_file = Path(f'models/{metadata_file}/metadata_{model_name}.json')
 save_every = 400
 sample_rate = 22050
 window_length = 2048
@@ -37,7 +40,7 @@ transformations = transforms.transforms.Compose([
 ])
 
 train_loader = torch.utils.data.DataLoader(
-    helper_functions.SongIngestion(medium,
+    helper_functions.SongIngestion(medium_rock,
                                    sample_length=sample_length,
                                    transformations=transformations,
                                    sr=sample_rate,
@@ -48,7 +51,7 @@ train_loader = torch.utils.data.DataLoader(
 
 
 if config_file.exists():
-    with open(f'models/{metadata_file}/metadata{model_name}.json', 'r') as outfile:
+    with open(config_file, 'r') as outfile:
         metadata = json.load(outfile)
 
     for key, value in metadata.items():
