@@ -20,7 +20,7 @@ medium = medium.copy()
 medium[('path', '')] = medium.index.map(lambda x: Path(fmautils.get_audio_path(AUDIO_DIR, x)))
 
 medium_rock = medium[medium[('track', 'genre_top')] == 'Rock']
-medium_rock = medium_rock.sample(100)
+# medium_rock = medium_rock.sample(100)
 
 device = 'cuda'
 sample_length = 32768
@@ -31,6 +31,7 @@ epochs_to_run = 16000
 save_every = 400
 sample_rate = 22050
 window_length = 2048
+maximum_sample_location = 4096
 y_size = 500
 batch_size = 16
 
@@ -46,7 +47,8 @@ train_loader = torch.utils.data.DataLoader(
                                    sr=sample_rate,
                                    window_length=window_length,
                                    y_size=y_size,
-                                   n_mels=256),
+                                   n_mels=256,
+                                   maximum_sample_location=maximum_sample_location),
     batch_size=batch_size)
 
 
@@ -61,7 +63,8 @@ if config_file.exists():
 
     model = torch.load(model_path)
 else:
-    model = helper_functions.SoundGenerator(inputs=len(train_loader.dataset))
+    model = helper_functions.SoundGenerator(song_identifier_inputs=len(train_loader.dataset),
+                                            sample_location_inputs=maximum_sample_location)
     metadata = {}
     starting_iteration = 0
 
@@ -72,26 +75,23 @@ model.to(device)
 
 steps = 0
 running_loss = 0
-train_losses = []
-test_losses = []
-accuracies = []
 
 for epoch in range(epochs_to_run):
     running_loss = 0
     epoch = starting_iteration + epoch
     model.train()
-    for results, inputs in train_loader:
+    for results, song_identifier, sample_location in train_loader:
         steps += 1
-        inputs, results = inputs.to(device).float(), results.to(device)
+        song_identifier, sample_location, results = \
+            song_identifier.to(device).float(), sample_location.to(device).float(), results.to(device)
         optimizer.zero_grad()
-        logps = model(inputs)
+        logps = model(song_identifier, sample_location)
         logps = logps.reshape([logps.shape[0], y_size, 256])
         loss = criterion(logps, results.type_as(logps))
         loss.backward()
         optimizer.step()
         running_loss += loss.item()
 
-    train_losses.append(running_loss)
     print(f"Epoch {epoch + 1}/{epochs_to_run + starting_iteration}.. "
           f"Train loss: {running_loss:.3f}.. ")
 
@@ -107,3 +107,13 @@ for epoch in range(epochs_to_run):
 
         with open(config_file, 'w') as outfile:
             json.dump(metadata, outfile)
+
+
+for results, song_identifier, sample_location in train_loader:
+    if 'x' in globals():
+        y = song_identifier
+        break
+    x = song_identifier
+    print(train_loader.dataset.n)
+
+

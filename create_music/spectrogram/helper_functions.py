@@ -92,10 +92,12 @@ def create_output(model: nn.Module, switches: list):
 
 
 class SongIngestion(torch.utils.data.Dataset):
-    def __init__(self, metadata, sample_length, transformations, sr, window_length, y_size, n_mels, seed=1994):
+    def __init__(self, metadata, sample_length, transformations, sr, window_length,
+                 y_size, n_mels, maximum_sample_location, seed=1994):
         super(SongIngestion).__init__()
         self.metadata = metadata
         self.n_mels = n_mels
+        self.maximum_sample_location = maximum_sample_location
 
         rand.seed(seed)
         np.random.seed(seed)
@@ -112,8 +114,8 @@ class SongIngestion(torch.utils.data.Dataset):
         self.window_length = window_length
         self.window = hamming(self.window_length, sym=False)
 
-    def onehot(self, n):
-        output = np.zeros(self.end)
+    def onehot(self, n, maximum):
+        output = np.zeros(maximum)
         output[n] = 1
         return output
 
@@ -137,42 +139,50 @@ class SongIngestion(torch.utils.data.Dataset):
     def subsample(self, sample):
         sample_length = sample.shape[1]
         start = rand.randint(0, sample_length - self.y_size)
+        start = min(self.maximum_sample_location - 1, start)
         sample = sample[:, start:(start + self.y_size)]
-        return sample
+        return sample, start
 
     def load_sample(self, index):
         sample, rate = self.load_sound_file(index)
         sample = self.load_spectrogram(sample, rate)
-        sample = self.subsample(sample)
+        sample, start_index = self.subsample(sample)
         # added a transpose to match the output of the neural network
         sample = np.transpose(sample)
         sample = tensor(sample).float()
         sample = self.transformations(sample)
-        return sample
+        return sample, start_index
 
     def __next__(self):
         if self.n < self.end:
-            sample = self.load_sample(self.n)
+            n = self.n
+            sample, start_index = self.load_sample(n)
             self.n += 1
-            return sample, self.onehot(self.n)
+            return sample, self.onehot(n, self.end), self.onehot(start_index, self.maximum_sample_location)
         else:
             self.n = 0
             raise StopIteration
 
     def __getitem__(self, index):
-        sample = self.load_sample(index)
-        return sample, self.onehot(index)
+        sample, start_index = self.load_sample(index)
+        return sample, self.onehot(index, self.end), self.onehot(start_index, self.maximum_sample_location)
 
     def __len__(self):
         return self.end
 
 
 class SoundGenerator(nn.Module):
-    def __init__(self, inputs) -> None:
+    def __init__(self, song_identifier_inputs, sample_location_inputs) -> None:
         super(SoundGenerator, self).__init__()
 
-        self.first_layer = nn.Sequential(
-            nn.Linear(inputs, 4096),
+        self.song_identifier_first_layer = nn.Sequential(
+            nn.Linear(song_identifier_inputs, 4096),
+            nn.ELU(inplace=True),
+            nn.Dropout()
+        )
+
+        self.sample_location_first_layer = nn.Sequential(
+            nn.Linear(sample_location_inputs, 4096),
             nn.ELU(inplace=True),
             nn.Dropout()
         )
@@ -202,8 +212,17 @@ class SoundGenerator(nn.Module):
             nn.Conv2d(1, 1, kernel_size=(7, 12), padding=0, stride=1, dilation=(2, 3))
         )
 
-    def forward(self, x: torch.Tensor) -> torch.Tensor:
-        x = self.first_layer(x)
+    def forward(self, song_identifier: torch.Tensor,
+                sample_location: torch.Tensor) -> torch.Tensor:
+
+        # Takes the input of the ont hot encoded index of the sample from the metadata file
+        song_identifier = self.song_identifier_first_layer(song_identifier)
+
+        # Takes the input of the ont hot encoded index of the starting value from the sample
+        sample_location = self.sample_location_first_layer(sample_location)
+
+        x = song_identifier + sample_location
+
         x = x.view(x.size(0), 1, 64, 64)
         x = self.features(x)
         x = self.upsample(x)

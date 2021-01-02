@@ -242,6 +242,11 @@ d = (3, 2)
 
 k = (12, 7)
 
+#### Additional Layers
+
+After 6000 epochs there was no significant progress, so an additional layer which captured the section of the song which was taken to build the network was introduced.
+This layer took a linear input of one hot encoded values of the starting index for the sample in the song and outputs and returns a shape (1,4096) tensor which can be added to the original first layer.
+
 # References
 
 [1]: https://www.youtube.com/watch?v=wXWKWyALxYM
