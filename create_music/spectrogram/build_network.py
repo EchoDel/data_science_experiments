@@ -19,10 +19,10 @@ medium = tracks[tracks['set', 'subset'] <= 'medium']
 medium = medium.copy()
 medium[('path', '')] = medium.index.map(lambda x: Path(fmautils.get_audio_path(AUDIO_DIR, x)))
 
-device = 'cpu'
 medium_rock = medium[medium[('track', 'genre_top')] == 'Rock']
 medium_rock = medium_rock.sample(100)
 
+device = 'cuda'
 sample_length = 32768
 model_name = 'medium_rock'
 metadata_file = 'lofi_spectrogram'
