@@ -156,6 +156,7 @@ class SongIngestion(torch.utils.data.Dataset):
             self.n += 1
             return sample, self.onehot(self.n)
         else:
+            self.n = 0
             raise StopIteration
 
     def __getitem__(self, index):
