@@ -163,9 +163,9 @@ class SongIngestion(torch.utils.data.Dataset):
     def __next__(self):
         if self.n < self.end:
             n = self.n
-            sample, start_index = self.load_sample(n)
+            sample, one_hot, sample_location = self.__getitem__(n)
             self.n += 1
-            return sample, self.onehot(n, self.end), self.onehot(start_index, self.maximum_sample_location)
+            return sample, one_hot, sample_location
         else:
             self.n = 0
             raise StopIteration
