@@ -136,7 +136,14 @@ class SongIngestion(torch.utils.data.Dataset):
                                                          n_mels=self.n_mels)
         return frequency_graph
 
+    def pad_spectrogram(self, sample):
+        x, y = sample.shape
+        return np.pad(sample, ((0, self.n_mels - x), (0, self.y_size - y)))
+
     def subsample(self, sample):
+        # Added a statement to correctly return samples under y_size long
+        if sample.shape[1] < self.y_size:
+            return self.pad_spectrogram(sample), 0
         sample_length = sample.shape[1]
         start = rand.randint(0, sample_length - self.y_size)
         start = min(self.maximum_sample_location - 1, start)
