@@ -25,22 +25,32 @@ medium_rock = medium[medium[('track', 'genre_top')] == 'Rock']
 device = 'cuda'
 sample_length = 32768
 model_name = 'medium_rock'
-metadata_file = 'lofi_spectrogram'
+metadata_file = 'lofi_spectrogram_2'
 config_file = Path(f'models/{metadata_file}/metadata_{model_name}.json')
 loader_path = Path(f'models/{metadata_file}/loader_{model_name}.pth')
 epochs_to_run = 16000
-save_every = 400
+save_every = 100
 sample_rate = 22050
 window_length = 2048
 maximum_sample_location = 4096
 y_size = 500
-batch_size = 16
+batch_size = 32
 
 transformations = transforms.transforms.Compose([
     # transforms.transforms.Normalize(mean=[0.485, 0.456, 0.406],
     #                                 std=[0.229, 0.224, 0.225])
 ])
 
+train_loader = torch.utils.data.DataLoader(
+    helper_functions.SongIngestion(medium_rock,
+                                   sample_length=sample_length,
+                                   transformations=transformations,
+                                   sr=sample_rate,
+                                   window_length=window_length,
+                                   y_size=y_size,
+                                   n_mels=256,
+                                   maximum_sample_location=maximum_sample_location),
+    batch_size=batch_size)
 
 if config_file.exists():
     with open(config_file, 'r') as outfile:
@@ -52,27 +62,17 @@ if config_file.exists():
             starting_iteration = int(key)
 
     model = torch.load(model_path)
-    train_loader = torch.load(loader_path)
 
 else:
-    train_loader = torch.utils.data.DataLoader(
-        helper_functions.SongIngestion(medium_rock,
-                                       sample_length=sample_length,
-                                       transformations=transformations,
-                                       sr=sample_rate,
-                                       window_length=window_length,
-                                       y_size=y_size,
-                                       n_mels=256,
-                                       maximum_sample_location=maximum_sample_location),
-        batch_size=batch_size)
-
     model = helper_functions.SoundGenerator(song_identifier_inputs=len(train_loader.dataset),
                                             sample_location_inputs=maximum_sample_location)
     metadata = {}
     starting_iteration = 0
 
 
-optimizer = optim.SGD(model.parameters(), lr=0.05, momentum=0.9)
+
+
+optimizer = optim.SGD(model.parameters(), lr=0.1, momentum=0.9)
 criterion = nn.L1Loss()
 model.to(device)
 
@@ -96,7 +96,7 @@ for epoch in range(epochs_to_run):
         running_loss += loss.item()
 
     print(f"Epoch {epoch + 1}/{epochs_to_run + starting_iteration}.. "
-          f"Train loss: {running_loss:.3f}.. ")
+          f"Train loss: {running_loss / len(train_loader.dataset):.3f}.. ")
 
     save_path = f'models/{metadata_file}/music_creation_{model_name}_{epoch + 1}.pth'
     metadata[epoch + 1] = {
@@ -108,8 +108,8 @@ for epoch in range(epochs_to_run):
         metadata[epoch + 1]['path'] = save_path
         torch.save(model, save_path)
 
-        if loader_path.exists():
-            torch.save(train_loader, loader_path)
+        # if loader_path.exists():
+        #     torch.save(train_loader, loader_path)
 
         with open(config_file, 'w') as outfile:
             json.dump(metadata, outfile)
