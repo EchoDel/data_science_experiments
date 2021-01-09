@@ -145,8 +145,9 @@ class SongIngestion(torch.utils.data.Dataset):
         if sample.shape[1] < self.y_size:
             return self.pad_spectrogram(sample), 0
         sample_length = sample.shape[1]
-        start = rand.randint(0, sample_length - self.y_size)
-        start = min(self.maximum_sample_location - 1, start)
+        # start = rand.randint(0, sample_length - self.y_size)
+        # start = min(self.maximum_sample_location - 1, start)
+        start = 0
         sample = sample[:, start:(start + self.y_size)]
         return sample, start
 
