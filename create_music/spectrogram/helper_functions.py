@@ -234,5 +234,5 @@ class SoundGenerator(nn.Module):
         x = self.features(x)
         x = self.upsample(x)
         x = x.view(x.size(0), 1, 512, 289)
-        x = self.output_layer(x)
-        return x
+        # x = self.output_layer(x)
+        return x[0:x.size(0), 0, 0:500, 0:256]
