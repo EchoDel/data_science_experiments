@@ -52,3 +52,10 @@ for x in edges:
 for x in last_cities:
     ug.nodes[x]['trip_finishes'] = last_cities[x]
 
+
+
+k = helper_functions.random_subgraph(ug)
+
+for x in
+
+nx.draw(k, with_labels=True)
