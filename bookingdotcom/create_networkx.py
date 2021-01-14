@@ -6,6 +6,7 @@ import networkx as nx
 
 import bookingdotcom.helper_functions as helper_functions
 
+save_location = Path('bookingdotcom/cache/network_graph.pkl')
 
 # Initialize Graph
 ug = nx.Graph(directed=False)
@@ -52,6 +53,9 @@ for x in edges:
 for x in last_cities:
     ug.nodes[x]['trip_finishes'] = last_cities[x]
 
+# Save graph
+save_location.parent.mkdir(parents=True, exist_ok=True)
+nx.write_gpickle(ug, save_location)
 
 
 k = helper_functions.random_subgraph(ug)
