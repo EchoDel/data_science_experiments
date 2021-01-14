@@ -41,9 +41,9 @@ for record in training_data.iterrows():
 
 
 for x in nodes.iterrows():
-    ug.add_node(x[1]['utrip_id'],
-                country=x[1]['hotel_country'],
-                number_of_trips=x[1]['utrip_id'])
+    ug.add_node(x[1]['city_id'])
+    ug.nodes[x[1]['city_id']]['country'] = x[1]['hotel_country']
+    ug.nodes[x[1]['city_id']]['number_of_trips'] = x[1]['utrip_id']
 
 for x in edges:
     ug.add_edge(x[0], x[1], weight=edges[x])
