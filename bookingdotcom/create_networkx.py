@@ -58,8 +58,19 @@ save_location.parent.mkdir(parents=True, exist_ok=True)
 nx.write_gpickle(ug, save_location)
 
 
-k = helper_functions.random_subgraph(ug)
 
-for x in
+k = helper_functions.random_subgraph(ug, depth=20, starting_node=2)
 
-nx.draw(k, with_labels=True)
+colour_map = []
+for x in k:
+    if 'trip_finishes' in k.nodes[x]:
+        if k.nodes[x]['trip_finishes'] > 20:
+            colour_map.append('green')
+        elif k.nodes[x]['trip_finishes'] > 10:
+            colour_map.append('yellow')
+        else:
+            colour_map.append('blue')
+    else:
+        colour_map.append('red')
+
+nx.draw(k, with_labels=True, node_color=colour_map)
