@@ -61,3 +61,4 @@ for node in booking_graph.nodes():
                                                              v,
                                                              torch.Size([3, max(booking_graph.nodes()) + 1]))
 
+torch.save(connected_node_features, save_location / 'connected_node_features.pkl')
