@@ -7,10 +7,9 @@ import pickle as pkl
 
 import bookingdotcom.helper_functions as helper_functions
 
-network_location = Path('bookingdotcom/cache/network_graph.pkl')
 save_location = Path('bookingdotcom/cache/')
 
-booking_graph = nx.read_gpickle(network_location)
+booking_graph = nx.read_gpickle(save_location / 'network_graph.pkl')
 
 # Betweenness
 betweenness = nx.betweenness_centrality(booking_graph, 2000, weight="number_of_trips")
