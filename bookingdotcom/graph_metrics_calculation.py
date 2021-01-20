@@ -24,7 +24,8 @@ with open(save_location / 'closeness.pkl', mode='wb') as file:
     pkl.dump(closeness, file)
 
 # Triangles, in theory more triangle means more people visit there
-closeness = nx.triangles(booking_graph)
+triangles = nx.triangles(booking_graph)
 
 with open(save_location / 'triangles.pkl', mode='wb') as file:
-    pkl.dump(closeness, file)
+    pkl.dump(triangles, file)
+
