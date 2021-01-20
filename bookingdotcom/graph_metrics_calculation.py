@@ -14,7 +14,7 @@ booking_graph = nx.read_gpickle(save_location / 'network_graph.pkl')
 # Betweenness
 betweenness = nx.betweenness_centrality(booking_graph, 2000, weight="number_of_trips")
 
-with open(save_location / 'betweeness.pkl', mode='wb') as file:
+with open(save_location / 'betweenness.pkl', mode='wb') as file:
     pkl.dump(betweenness, file)
 
 # Closeness
