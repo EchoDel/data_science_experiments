@@ -38,3 +38,25 @@ for x in closeness.keys():
 
 with open(save_location / 'network_features.pkl', mode='wb') as file:
     pkl.dump(network_features, file)
+
+
+# setup sparse matrices of the parameters for each city/node
+connected_node_features = {}
+for node in booking_graph.nodes():
+    connected_nodes = [x[1] for x in booking_graph.edges(node)]
+    xs = []
+    ys = []
+    values = []
+
+    for value_node in connected_nodes:
+        ys += ([value_node] * 3)
+        xs += [0, 1, 2]
+        values += network_features[:, value_node].tolist()
+
+    i = torch.LongTensor([xs,
+                          ys])
+    v = torch.FloatTensor(values)
+    connected_node_features[node] = torch.sparse.FloatTensor(i,
+                                                             v,
+                                                             torch.Size([3, max(booking_graph.nodes()) + 1]))
+
