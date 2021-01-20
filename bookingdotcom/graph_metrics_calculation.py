@@ -29,3 +29,12 @@ triangles = nx.triangles(booking_graph)
 with open(save_location / 'triangles.pkl', mode='wb') as file:
     pkl.dump(triangles, file)
 
+
+network_features = np.zeros((3, max(closeness.keys()) + 1))
+for x in closeness.keys():
+    network_features[0, x] = closeness[x]
+    network_features[1, x] = betweenness[x]
+    network_features[2, x] = triangles[x]
+
+with open(save_location / 'network_features.pkl', mode='wb') as file:
+    pkl.dump(network_features, file)
