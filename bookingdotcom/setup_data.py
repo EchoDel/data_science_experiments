@@ -48,6 +48,7 @@ for record in trip_dataframe.iterrows():
 
     # response variable
     final_city = record[1]['city_id'][-1]
+    current_city = record[1]['city_id'][-2]
 
     # get the previous cities in the trip as a single sparse tensor
     trip_previous_cities = record[1]['city_id'][:-1]
@@ -69,14 +70,15 @@ for record in trip_dataframe.iterrows():
                        training_data['checkin_date'] < record[1]['starting_date'])]['days'].dt.days.to_list()
 
     previous_cities = helper_functions.create_sparse_matrix(
-        input_data = zip(all_previous_cities,
+        input_data=zip(all_previous_cities,
                          [0] * len(all_previous_cities),
                          all_previous_cities_days),
-        matrix_size = torch.Size([1, max(training_data['city_id']) + 1]))
+        matrix_size=torch.Size([1, max(training_data['city_id']) + 1]))
 
     output = {'final_city': final_city,
               'trip_cities': trip_cities,
-              'previous_cities': previous_cities}
+              'previous_cities': previous_cities,
+              'current_city': current_city}
     trips[trip_id] = output
 
 torch.save(trips, cache_location / 'trip_properties.pkl')
