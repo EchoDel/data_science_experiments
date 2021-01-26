@@ -20,6 +20,7 @@ train_loader = torch.utils.data.DataLoader(
     helper_functions.BookingLoader(trips=trips.copy(),
                                    connected_node_features=connected_node_features.copy(),
                                    training=True,
+                                   number_of_classes=67566,
                                    training_percentage=0.2),
     batch_size=16)
 
@@ -27,8 +28,10 @@ test_loader = torch.utils.data.DataLoader(
     helper_functions.BookingLoader(trips=trips.copy(),
                                    connected_node_features=connected_node_features.copy(),
                                    training=False,
+                                   number_of_classes=67566,
                                    training_percentage=0.2),
-    batch_size=50)
+    batch_size=16)
+
 
 BookingLoader(trips=trips,
               connected_node_features=connected_node_features,
