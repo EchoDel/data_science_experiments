@@ -88,22 +88,30 @@ for epoch in range(epochs):
     accuracy = 0
     model.eval()
     with torch.no_grad():
-        for test_inputs, test_labels in test_loader:
-            test_inputs, test_labels = test_inputs.to(device), test_labels.to(device)
-            test_logps = model.forward(test_inputs)
-            batch_loss = criterion(test_logps.squeeze(1), test_labels.type_as(test_logps))
-            test_loss += batch_loss.item()
+        for test_final_city, test_trip_cities, test_previous_cities, test_node_features in test_loader:
+            test_trip_cities = test_trip_cities.to_dense().to(device)
+            test_previous_cities = test_previous_cities.to_dense().to(device)
+            closeness = test_node_features.to_dense()[:, 0:1, ].to(device)
+            betweenness = test_node_features.to_dense()[:, 1:2, ].to(device)
+            triangles = test_node_features.to_dense()[:, 2:, ].to(device)
+            test_final_city = test_final_city.to(device)
 
-            top_class = test_logps.gt(0.5)
-            equals = top_class == test_labels.view(*top_class.shape)
-            accuracy += torch.mean(equals.type(torch.FloatTensor)).item() * len(test_labels)
+            test_logps = model(closeness, betweenness, triangles, test_trip_cities, test_previous_cities)
+
+            valid_cities = (closeness > 0).float()
+            test_logps = test_logps * valid_cities
+
+            predictions = []
+            for final_city_, maximum_cities in zip(final_city, test_logps.topk(3)[1]):
+                predictions.append(final_city_ in maximum_cities)
+
+            accuracy += sum(predictions) / len(test_final_city)
 
     train_losses.append(running_loss / len(train_loader.dataset))
     test_losses.append(test_loss / len(test_loader.dataset))
     accuracies.append(accuracy / len(test_loader.dataset))
     print(f"Epoch {epoch + 1}/{epochs}.. "
           f"Train loss: {running_loss / len(train_loader.dataset):.3f}.. "
-          f"Test loss: {test_loss / len(test_loader.dataset):.3f}.. "
           f"Test accuracy: {accuracy / len(test_loader.dataset):.3f}")
     running_loss = 0
     train_loader.dataset.shuffle()
@@ -112,7 +120,6 @@ for epoch in range(epochs):
     save_path = model_location / f'booking_model_{epoch + 1}.pth'
     metadata[epoch + 1] = {
         'running_loss': running_loss / len(train_loader.dataset),
-        'test_loss': test_loss / len(test_loader.dataset),
         'accuracy': accuracy / len(test_loader.dataset)
     }
 
