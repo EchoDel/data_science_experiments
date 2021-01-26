@@ -70,6 +70,10 @@ class BookingLoader(torch.utils.data.Dataset):
     def load_sample(self, index):
         dict_key = self.indices[index]
         final_city = self.trips[dict_key]['final_city']
+
+        if self.trips[dict_key]['current_city'] == 0:
+            self.trips[dict_key]['current_city'] = 2
+
         connected_node_features = self.connected_node_features[self.trips[dict_key]['current_city']]
         trip_cities = self.trips[dict_key]['trip_cities']
         previous_cities = self.trips[dict_key]['previous_cities']
