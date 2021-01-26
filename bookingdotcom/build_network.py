@@ -115,7 +115,6 @@ for epoch in range(epochs):
           f"Train loss: {running_loss / len(train_loader.dataset):.3f}.. "
           f"Test accuracy: {accuracy:.3f}")
     running_loss = 0
-    train_loader.dataset.shuffle()
     model.train()
 
     save_path = model_location / f'booking_model_{epoch + 1}.pth'
