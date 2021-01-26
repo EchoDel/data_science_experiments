@@ -11,6 +11,7 @@ epochs = 1000
 save_every = 5
 device = 'cuda'
 model_location = Path('models/bookingdotcom/')
+config_file = model_location / 'metadata.json'
 
 connected_node_features = torch.load(cache_location / 'connected_node_features.pkl')
 trips = torch.load(cache_location / 'trip_properties.pkl')
@@ -105,5 +106,5 @@ for epoch in range(epochs):
         torch.save(model, save_path)
 
 
-with open(model_location / f'metadata.json', 'w') as outfile:
+with open(config_file, 'w') as outfile:
     json.dump(metadata, outfile)
