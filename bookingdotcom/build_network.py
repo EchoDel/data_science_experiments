@@ -110,10 +110,10 @@ for epoch in range(epochs):
 
     train_losses.append(running_loss / len(train_loader.dataset))
     test_losses.append(test_loss / len(test_loader.dataset))
-    accuracies.append(accuracy / len(test_loader.dataset))
+    accuracies.append(accuracy)
     print(f"Epoch {epoch + 1}/{epochs}.. "
           f"Train loss: {running_loss / len(train_loader.dataset):.3f}.. "
-          f"Test accuracy: {accuracy / len(test_loader.dataset):.3f}")
+          f"Test accuracy: {accuracy:.3f}")
     running_loss = 0
     train_loader.dataset.shuffle()
     model.train()
