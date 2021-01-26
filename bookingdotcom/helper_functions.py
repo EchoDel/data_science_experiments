@@ -57,6 +57,7 @@ class BookingLoader(torch.utils.data.Dataset):
             self.indices = [x for x in trips.keys() if x not in self.indices]
 
         self.sample_trips = [self.trips[index] for index in self.indices]
+        self.n = 0
         self.start = 0
         self.end = len(self.indices)
 
