@@ -48,7 +48,10 @@ for record in trip_dataframe.iterrows():
 
     # response variable
     final_city = record[1]['city_id'][-1]
-    current_city = record[1]['city_id'][-2]
+    if len(record[1]['city_id']) > 1:
+        current_city = record[1]['city_id'][-2]
+    else:
+        current_city = 0
 
     # get the previous cities in the trip as a single sparse tensor
     trip_previous_cities = record[1]['city_id'][:-1]
