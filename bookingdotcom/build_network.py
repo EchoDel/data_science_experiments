@@ -103,7 +103,7 @@ for epoch in range(epochs):
             test_logps = test_logps * valid_cities
 
             predictions = []
-            for final_city_, maximum_cities in zip(final_city, test_logps.topk(3)[1]):
+            for final_city_, maximum_cities in zip(test_final_city.topk(1)[1], test_logps.topk(3)[1]):
                 predictions.append(final_city_ in maximum_cities)
 
             accuracy += sum(predictions) / len(test_final_city)
