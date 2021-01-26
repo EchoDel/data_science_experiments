@@ -125,6 +125,7 @@ for epoch in range(epochs):
     }
 
     if epoch == 0:
+        model_location.mkdir(parents=True,exist_ok=True)
         metadata[epoch + 1]['path'] = save_path
         torch.save(model, save_path)
     elif epoch % save_every == 1:
