@@ -2,6 +2,9 @@ import networkx as nx
 import torch
 import numpy as np
 import random as rand
+import torch.nn as nn
+from torch import tensor
+import torch.nn.functional as F
 
 
 def random_subgraph(graph: nx.Graph, depth=4, starting_node=2):
@@ -96,3 +99,48 @@ class BookingLoader(torch.utils.data.Dataset):
 
     def __len__(self):
         return self.end
+
+
+
+
+class LinearNN(nn.Module):
+    def __init__(self, city_numbers) -> None:
+        super(LinearNN, self).__init__()
+        self.fc = nn.Sequential(
+            nn.Linear(city_numbers, 2048),
+            nn.ELU(inplace=True),
+            nn.Dropout(p=0.3),
+            nn.Linear(2048, 4096),
+            nn.ELU(inplace=True),
+            nn.Dropout(p=0.3),
+            nn.Linear(4096, 4096),
+        )
+
+        self.features = nn.Sequential(
+            nn.Linear(4096, 4096),
+            nn.ELU(inplace=True),
+            nn.Dropout(p=0.3),
+        )
+
+        self.classifier = nn.Sequential(
+            nn.ELU(inplace=True),
+            nn.Dropout(),
+            nn.Linear(4096, city_numbers),
+        )
+
+    def forward(self,
+                closeness: torch.Tensor,
+                betweenness: torch.Tensor,
+                triangles: torch.Tensor,
+                trip_cities: torch.Tensor,
+                previous_cities: torch.Tensor,) -> torch.Tensor:
+        closeness_fc = self.fc(closeness)
+        betweenness_fc = self.fc(betweenness)
+        triangles_fc = self.fc(triangles)
+        trip_cities_fc = self.fc(trip_cities)
+        previous_cities_fc = self.fc(previous_cities)
+
+        x = closeness_fc + betweenness_fc + triangles_fc + trip_cities_fc + previous_cities_fc
+        x = self.features(x)
+        x = self.classifier(x)
+        return x
