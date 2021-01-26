@@ -10,6 +10,7 @@ cache_location = Path('bookingdotcom/cache/')
 epochs = 1000
 save_every = 5
 device = 'cuda'
+device = 'cpu'
 model_location = Path('models/bookingdotcom/')
 config_file = model_location / 'metadata.json'
 
