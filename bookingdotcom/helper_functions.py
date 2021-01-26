@@ -41,12 +41,13 @@ def create_sparse_matrix(input_data: zip, matrix_size: torch.Size):
 
 
 class BookingLoader(torch.utils.data.Dataset):
-    def __init__(self, trips, connected_node_features, training, training_percentage, seed=1994):
+    def __init__(self, trips, connected_node_features, training, training_percentage, number_of_classes, seed=1994):
         super(BookingLoader).__init__()
         self.trips = trips
         self.connected_node_features = connected_node_features
         self.training = training
         self.training_percentage = training_percentage
+        self.number_of_classes = number_of_classes
 
         rand.seed(seed)
         np.random.seed(seed)
@@ -61,6 +62,11 @@ class BookingLoader(torch.utils.data.Dataset):
         self.start = 0
         self.end = len(self.indices)
 
+    def get_one_hot(self, target):
+        a = torch.zeros(self.number_of_classes, dtype=torch.float)
+        a[target] = 1
+        return a
+
     def load_sample(self, index):
         dict_key = self.indices[index]
         final_city = self.trips[dict_key]['final_city']
@@ -68,7 +74,7 @@ class BookingLoader(torch.utils.data.Dataset):
         trip_cities = self.trips[dict_key]['trip_cities']
         previous_cities = self.trips[dict_key]['previous_cities']
 
-        return final_city, trip_cities, previous_cities, connected_node_features
+        return self.get_one_hot(final_city), trip_cities, previous_cities, connected_node_features
 
     def __next__(self):
         if self.n < self.end:
