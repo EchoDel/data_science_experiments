@@ -34,11 +34,21 @@ test_loader = torch.utils.data.DataLoader(
     batch_size=16)
 
 
-BookingLoader(trips=trips,
-              connected_node_features=connected_node_features,
-              training=True,
-              training_percentage=0.2)
+if config_file.exists():
+    with open(config_file, 'r') as outfile:
+        metadata = json.load(outfile)
 
+    for key, value in metadata.items():
+        if 'path' in value:
+            model_path = value['path']
+            starting_iteration = int(key)
+
+    model = torch.load(model_path)
+
+else:
+    model = helper_functions.LinearNN(city_numbers=67566)
+    metadata = {}
+    starting_iteration = 0
 
 
 optimizer = optim.SGD(model.parameters(), lr=0.0005, momentum=0.9)
