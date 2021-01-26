@@ -52,7 +52,7 @@ else:
     starting_iteration = 0
 
 
-optimizer = optim.SGD(model.parameters(), lr=0.0005, momentum=0.9)
+optimizer = optim.SGD(model.parameters(), lr=0.05, momentum=0.9)
 criterion = nn.BCEWithLogitsLoss()
 model.to(device)
 
