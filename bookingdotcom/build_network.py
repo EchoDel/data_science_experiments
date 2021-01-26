@@ -63,12 +63,23 @@ accuracies = []
 metadata = {}
 
 for epoch in range(epochs):
-    for inputs, labels in train_loader:
+    for final_city, trip_cities, previous_cities, node_features in train_loader:
         steps += 1
-        inputs, labels = inputs.to(device), labels.to(device)
+
+        trip_cities = trip_cities.to_dense().to(device)
+        previous_cities = previous_cities.to_dense().to(device)
+        closeness = node_features.to_dense()[:, 0:1, ].to(device)
+        betweenness = node_features.to_dense()[:, 1:2, ].to(device)
+        triangles = node_features.to_dense()[:, 2:, ].to(device)
+        final_city = final_city.to(device)
+
         optimizer.zero_grad()
-        logps = model(inputs)
-        loss = criterion(logps.squeeze(1), labels.type_as(logps))
+        logps = model(closeness, betweenness, triangles, trip_cities, previous_cities)
+        # times by the cities which previously have been visited by the latest city
+        valid_cities = (closeness > 0).float()
+        logps = logps * valid_cities
+
+        loss = criterion(logps.squeeze(1), final_city.type_as(logps))
         loss.backward()
         optimizer.step()
         running_loss += loss.item()
