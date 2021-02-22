@@ -81,21 +81,21 @@ class BookingLoader(torch.utils.data.Dataset):
         trip_cities = self.trips[dict_key]['trip_cities']
         previous_cities = self.trips[dict_key]['previous_cities']
 
-        return self.get_one_hot(final_city), trip_cities, previous_cities, connected_node_features
+        return self.get_one_hot(final_city), trip_cities, previous_cities, connected_node_features, dict_key
 
     def __next__(self):
         if self.n < self.end:
             n = self.n
-            final_city, trip_cities, previous_cities, connected_node_features = self.__getitem__(n)
+            final_city, trip_cities, previous_cities, connected_node_features, trip_id = self.__getitem__(n)
             self.n += 1
-            return final_city, trip_cities, previous_cities, connected_node_features
+            return final_city, trip_cities, previous_cities, connected_node_features, trip_id
         else:
             self.n = 0
             raise StopIteration
 
     def __getitem__(self, index):
-        final_city, trip_cities, previous_cities, connected_node_features = self.load_sample(index)
-        return final_city, trip_cities, previous_cities, connected_node_features
+        final_city, trip_cities, previous_cities, connected_node_features, trip_id  = self.load_sample(index)
+        return final_city, trip_cities, previous_cities, connected_node_features, trip_id
 
     def __len__(self):
         return self.end
