@@ -64,7 +64,7 @@ accuracies = []
 metadata = {}
 
 for epoch in range(epochs):
-    for final_city, trip_cities, previous_cities, node_features in train_loader:
+    for final_city, trip_cities, previous_cities, node_features, trip_id in train_loader:
         steps += 1
 
         trip_cities = trip_cities.to_dense().to(device)
@@ -89,7 +89,7 @@ for epoch in range(epochs):
     accuracy = 0
     model.eval()
     with torch.no_grad():
-        for test_final_city, test_trip_cities, test_previous_cities, test_node_features in test_loader:
+        for test_final_city, test_trip_cities, test_previous_cities, test_node_features, trip_id  in test_loader:
             test_trip_cities = test_trip_cities.to_dense().to(device)
             test_previous_cities = test_previous_cities.to_dense().to(device)
             closeness = test_node_features.to_dense()[:, 0:1, ].to(device)
@@ -103,7 +103,7 @@ for epoch in range(epochs):
             test_logps = test_logps * valid_cities
 
             predictions = []
-            for final_city_, maximum_cities in zip(test_final_city.topk(1)[1], test_logps.topk(3)[1]):
+            for final_city_, maximum_cities in zip(test_final_city.topk(1)[1], test_logps.topk(4)[1]):
                 predictions.append(final_city_ in maximum_cities)
 
             accuracy += sum(predictions) / len(test_final_city)
