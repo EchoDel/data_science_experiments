@@ -22,7 +22,7 @@ sound_files = sound_files.sample(100, random_state=1390)
 device = 'cuda'
 sample_length = 32768
 model_name = 'sound_file_clustering'
-metadata_file = 'spectrogram'
+metadata_file = 'sound_file_clustering'
 epochs_to_run = 16000
 save_every = 100
 sample_rate = 22050
