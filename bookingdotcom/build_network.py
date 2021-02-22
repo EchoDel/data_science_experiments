@@ -8,7 +8,7 @@ import bookingdotcom.helper_functions as helper_functions
 
 cache_location = Path('bookingdotcom/cache/')
 epochs = 1000
-save_every = 5
+save_every = 10
 device = 'cuda'
 device = 'cpu'
 model_location = Path('models/bookingdotcom/')
