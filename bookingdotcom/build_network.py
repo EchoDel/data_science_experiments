@@ -23,16 +23,16 @@ train_loader = torch.utils.data.DataLoader(
                                    connected_node_features=connected_node_features.copy(),
                                    training=True,
                                    number_of_classes=67566,
-                                   training_percentage=0.2),
-    batch_size=16)
+                                   training_percentage=0.8),
+    batch_size=256)
 
 test_loader = torch.utils.data.DataLoader(
     helper_functions.BookingLoader(trips=trips.copy(),
                                    connected_node_features=connected_node_features.copy(),
                                    training=False,
                                    number_of_classes=67566,
-                                   training_percentage=0.2),
-    batch_size=16)
+                                   training_percentage=0.8),
+    batch_size=256)
 
 
 if config_file.exists():
