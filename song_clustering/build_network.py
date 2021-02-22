@@ -106,8 +106,8 @@ for epoch in range(epochs_to_run):
         metadata[epoch + 1]['path'] = save_path
         torch.save(model, save_path)
 
-        # if loader_path.exists():
-        #     torch.save(train_loader, loader_path)
+        if loader_path.exists():
+            torch.save(train_loader, loader_path)
 
         with open(config_file, 'w') as outfile:
             json.dump(metadata, outfile)
