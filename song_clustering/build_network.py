@@ -17,7 +17,7 @@ files = [x for x in sound_file_base.glob('**/*.*') if x.suffix in ['.mp3', '.m4a
 
 sound_files = pd.DataFrame({'names': [x.name for x in files],
                             'path': files})
-sound_files = sound_files.sample(100)
+sound_files = sound_files.sample(100, random_state=1390)
 
 device = 'cuda'
 sample_length = 32768
