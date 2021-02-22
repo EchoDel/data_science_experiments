@@ -28,7 +28,7 @@ save_every = 100
 sample_rate = 22050
 window_length = 2048
 maximum_sample_location = 4096
-y_size = 500
+y_size = 520
 batch_size = 32
 
 
