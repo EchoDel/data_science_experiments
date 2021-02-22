@@ -125,13 +125,13 @@ for epoch in range(epochs):
 
     if epoch == 0:
         model_location.mkdir(parents=True,exist_ok=True)
-        metadata[epoch + 1]['path'] = save_path
+        metadata[epoch + 1]['path'] = str(save_path)
         torch.save(model, save_path)
     elif epoch % save_every == 1:
-        metadata[epoch + 1]['path'] = save_path
+        metadata[epoch + 1]['path'] = str(save_path)
         torch.save(model, save_path)
     elif accuracy / len(test_loader.dataset) > max(accuracies):
-        metadata[epoch + 1]['path'] = save_path
+        metadata[epoch + 1]['path'] = str(save_path)
         torch.save(model, save_path)
 
 
