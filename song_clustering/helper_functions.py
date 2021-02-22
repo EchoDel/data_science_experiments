@@ -188,14 +188,21 @@ class AutoEncoder(nn.Module):
             nn.Conv2d(1, 16, 3, stride=3, padding=1),  # b, 16, 10, 10
             nn.ReLU(True),
             nn.MaxPool2d(2, stride=2),  # b, 16, 5, 5
-            nn.Conv2d(16, 4, 3, stride=2, padding=1),  # b, 8, 3, 3
+            nn.Conv2d(16, 8, 3, stride=2, padding=1),  # b, 8, 3, 3
             nn.ReLU(True),
-            nn.MaxPool2d(2, stride=1)  # b, 8, 2, 2
+            nn.Dropout(),
+            nn.Conv2d(8, 4, 3, stride=2, padding=1),  # b, 8, 3, 3
+            nn.ReLU(True),
+            nn.MaxPool2d(2, stride=1)  # b, 4, 20, 10
         )
 
         self.decode = nn.Sequential(
-            nn.ConvTranspose2d(4, 16, 3, stride=2),  # b, 16, 5, 5
+            nn.ConvTranspose2d(4, 8, 3, stride=2),  # b, 16, 5, 5
             nn.ReLU(True),
+            nn.Dropout(),
+            nn.ConvTranspose2d(8, 16, 3, stride=2),  # b, 16, 5, 5
+            nn.ReLU(True),
+            nn.Dropout(),
             nn.ConvTranspose2d(16, 8, 5, stride=3, padding=1),  # b, 8, 15, 15
             nn.ReLU(True),
             nn.ConvTranspose2d(8, 1, 2, stride=2, padding=1),  # b, 1, 28, 28
