@@ -63,8 +63,7 @@ if config_file.exists():
     model = torch.load(model_path)
 
 else:
-    model = helper_functions.AutoEncoder(song_identifier_inputs=len(train_loader.dataset),
-                                         sample_location_inputs=maximum_sample_location)
+    model = helper_functions.AutoEncoder(batch_size=batch_size)
     model.to(device)
     metadata = {}
     starting_iteration = 0

@@ -181,7 +181,8 @@ class SongIngestion(torch.utils.data.Dataset):
 
 
 class AutoEncoder(nn.Module):
-    def __init__(self, song_identifier_inputs, sample_location_inputs) -> None:
+    def __init__(self, batch_size) -> None:
+        self.batch_size = batch_size
         super(AutoEncoder, self).__init__()
 
         self.encode = nn.Sequential(
