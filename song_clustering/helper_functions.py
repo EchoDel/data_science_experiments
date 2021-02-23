@@ -1,6 +1,4 @@
-import pandas as pd
 import numpy as np
-from pathlib import Path
 import random as rand
 import librosa
 import torch
@@ -50,7 +48,7 @@ def smooth(x, window_len=11, window='hanning'):
     if window_len < 3:
         return x
 
-    if not window in ['flat', 'hanning', 'hamming', 'bartlett', 'blackman']:
+    if window not in ['flat', 'hanning', 'hamming', 'bartlett', 'blackman']:
         raise ValueError("Window is on of 'flat', 'hanning', 'hamming', 'bartlett', 'blackman'")
 
     s = np.r_[x[window_len - 1:0:-1], x, x[-2:-window_len - 1:-1]]
@@ -144,7 +142,7 @@ class SongIngestion(torch.utils.data.Dataset):
         # Added a statement to correctly return samples under y_size long
         if sample.shape[1] < self.y_size:
             return self.pad_spectrogram(sample), 0
-        sample_length = sample.shape[1]
+        # sample_length = sample.shape[1]
         # start = rand.randint(0, sample_length - self.y_size)
         # start = min(self.maximum_sample_location - 1, start)
         start = 0

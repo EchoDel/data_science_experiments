@@ -8,7 +8,6 @@ from torch import nn
 from torch import optim
 from torchvision import transforms
 
-from matplotlib import pyplot as plt
 
 # load the metadata for the fma dataset
 sound_file_base = Path('E:/music')

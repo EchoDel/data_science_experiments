@@ -1,9 +1,6 @@
 import pandas as pd
 import numpy as np
-import matplotlib.pyplot as plt
 from pathlib import Path
-import networkx as nx
-import pickle as pkl
 import torch
 
 import bookingdotcom.helper_functions as helper_functions
@@ -28,7 +25,8 @@ all_trips = training_data.append(testing_data)
 
 # Process Data
 
-def trip_list(grouping: pd.Grouper):
+
+def trip_list(grouping: pd.DataFrame):
     grouping = grouping.reset_index()
     output = {'city_id': [grouping['city_id'].to_list()],
               'countries': [grouping['hotel_country'].to_list()],
@@ -68,10 +66,10 @@ for record in trip_dataframe.iterrows():
     trip_previous_cities_days = record[1]['number_of_days'][:-1]
 
     trip_cities = helper_functions.create_sparse_matrix(
-        input_data = zip(trip_previous_cities,
-                         [0] * len(trip_previous_cities),
-                         trip_previous_cities_days),
-        matrix_size = torch.Size([1, max(training_data['city_id']) + 1]))
+        input_data=zip(trip_previous_cities,
+                       [0] * len(trip_previous_cities),
+                       trip_previous_cities_days),
+        matrix_size=torch.Size([1, max(training_data['city_id']) + 1]))
 
     # get the previous cities visited by the users as a single sparse tensor
     user_id = record[1]['user_id']
@@ -84,15 +82,15 @@ for record in trip_dataframe.iterrows():
 
     previous_cities = helper_functions.create_sparse_matrix(
         input_data=zip(all_previous_cities,
-                         [0] * len(all_previous_cities),
-                         all_previous_cities_days),
+                       [0] * len(all_previous_cities),
+                       all_previous_cities_days),
         matrix_size=torch.Size([1, max(training_data['city_id']) + 1]))
 
-    output = {'final_city': final_city,
-              'trip_cities': trip_cities,
-              'previous_cities': previous_cities,
-              'current_city': current_city}
-    trips[trip_id] = output
+    final_output = {'final_city': final_city,
+                    'trip_cities': trip_cities,
+                    'previous_cities': previous_cities,
+                    'current_city': current_city}
+    trips[trip_id] = final_output
 
 torch.save(trips, cache_location / 'trip_properties.pkl')
 
@@ -118,10 +116,10 @@ for record in trip_dataframe.iterrows():
     trip_previous_cities_days = record[1]['number_of_days'][:-1]
 
     trip_cities = helper_functions.create_sparse_matrix(
-        input_data = zip(trip_previous_cities,
-                         [0] * len(trip_previous_cities),
-                         trip_previous_cities_days),
-        matrix_size = torch.Size([1, max(training_data['city_id']) + 1]))
+        input_data=zip(trip_previous_cities,
+                       [0] * len(trip_previous_cities),
+                       trip_previous_cities_days),
+        matrix_size=torch.Size([1, max(training_data['city_id']) + 1]))
 
     # get the previous cities visited by the users as a single sparse tensor
     user_id = record[1]['user_id']
@@ -134,14 +132,14 @@ for record in trip_dataframe.iterrows():
 
     previous_cities = helper_functions.create_sparse_matrix(
         input_data=zip(all_previous_cities,
-                         [0] * len(all_previous_cities),
-                         all_previous_cities_days),
+                       [0] * len(all_previous_cities),
+                       all_previous_cities_days),
         matrix_size=torch.Size([1, max(training_data['city_id']) + 1]))
 
-    output = {'final_city': final_city,
-              'trip_cities': trip_cities,
-              'previous_cities': previous_cities,
-              'current_city': current_city}
-    testing_trips[trip_id] = output
+    final_output = {'final_city': final_city,
+                    'trip_cities': trip_cities,
+                    'previous_cities': previous_cities,
+                    'current_city': current_city}
+    testing_trips[trip_id] = final_output
 
 torch.save(testing_trips, cache_location / 'test_trip_properties.pkl')

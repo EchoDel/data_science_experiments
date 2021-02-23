@@ -8,7 +8,6 @@ from torch import optim
 from torchvision import transforms
 from fma import utils as fmautils
 
-from matplotlib import pyplot as plt
 
 # load the metadata for the fma dataset
 fma_base = Path('fma/data/fma_metadata')
@@ -68,8 +67,6 @@ else:
                                             sample_location_inputs=maximum_sample_location)
     metadata = {}
     starting_iteration = 0
-
-
 
 
 optimizer = optim.SGD(model.parameters(), lr=0.1, momentum=0.9)

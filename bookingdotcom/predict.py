@@ -1,8 +1,5 @@
 from pathlib import Path
 import torch
-from torch import optim
-import json
-from torch import nn
 import pandas as pd
 
 import bookingdotcom.helper_functions as helper_functions

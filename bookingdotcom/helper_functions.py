@@ -3,8 +3,6 @@ import torch
 import numpy as np
 import random as rand
 import torch.nn as nn
-from torch import tensor
-import torch.nn.functional as F
 
 
 def random_subgraph(graph: nx.Graph, depth=4, starting_node=2):
@@ -94,13 +92,11 @@ class BookingLoader(torch.utils.data.Dataset):
             raise StopIteration
 
     def __getitem__(self, index):
-        final_city, trip_cities, previous_cities, connected_node_features, trip_id  = self.load_sample(index)
+        final_city, trip_cities, previous_cities, connected_node_features, trip_id = self.load_sample(index)
         return final_city, trip_cities, previous_cities, connected_node_features, trip_id
 
     def __len__(self):
         return self.end
-
-
 
 
 class LinearNN(nn.Module):

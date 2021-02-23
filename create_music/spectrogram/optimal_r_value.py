@@ -77,7 +77,6 @@ medium[('r_value', '376')] = medium.index.map(lambda x: calculate_spacing(x, n_m
 medium.to_csv(csv_output, index=False)
 
 
-
 # Create outputs for the markdown
 medium = pd.read_csv(csv_output, header=[0, 1])
 

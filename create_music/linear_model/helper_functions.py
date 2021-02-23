@@ -6,7 +6,6 @@ import librosa
 import torch
 import torch.nn as nn
 from torch import tensor
-import torch.nn.functional as F
 
 
 def load_metadata(path: Path):
@@ -101,7 +100,6 @@ class SongIngestion(torch.utils.data.Dataset):
 
     def __len__(self):
         return self.end
-
 
 
 class LinearNN(nn.Module):

@@ -5,9 +5,8 @@ from create_music.linear_model import helper_functions
 import torch
 from torch import nn
 from torch import optim
-from torchvision import models, transforms
+from torchvision import transforms
 
-from matplotlib import pyplot as plt
 
 folder = Path('../music')
 device = 'cpu'

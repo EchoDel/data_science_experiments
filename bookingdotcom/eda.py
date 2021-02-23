@@ -1,6 +1,4 @@
 import pandas as pd
-import numpy as np
-import matplotlib.pyplot as plt
 from pathlib import Path
 
 # Parallelize the apply functions
@@ -40,6 +38,3 @@ latest_city = training_data.groupby('utrip_id').parallel_apply(last_city).reset_
 
 leaving_cities = latest_city.groupby(['city_id', 'countries']).agg({'utrip_id': 'count'})
 all_cities = training_data.groupby(['city_id', 'hotel_country']).agg({'utrip_id': 'count'})
-
-
-

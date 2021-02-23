@@ -89,7 +89,7 @@ for epoch in range(epochs):
     accuracy = 0
     model.eval()
     with torch.no_grad():
-        for test_final_city, test_trip_cities, test_previous_cities, test_node_features, trip_id  in test_loader:
+        for test_final_city, test_trip_cities, test_previous_cities, test_node_features, trip_id in test_loader:
             test_trip_cities = test_trip_cities.to_dense().to(device)
             test_previous_cities = test_previous_cities.to_dense().to(device)
             closeness = test_node_features.to_dense()[:, 0:1, ].to(device)
@@ -124,7 +124,7 @@ for epoch in range(epochs):
     }
 
     if epoch == 0:
-        model_location.mkdir(parents=True,exist_ok=True)
+        model_location.mkdir(parents=True, exist_ok=True)
         metadata[epoch + 1]['path'] = str(save_path)
         torch.save(model, save_path)
     elif epoch % save_every == 1:

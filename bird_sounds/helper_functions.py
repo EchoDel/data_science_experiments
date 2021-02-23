@@ -63,8 +63,8 @@ class BirdCalls(torch.utils.data.Dataset):
     def resample(self, metadata):
         # Separate majority and minority classes
         majority = metadata['hasbird'].mode()[0]
-        df_majority = metadata[metadata.hasbird == 0]
-        df_minority = metadata[metadata.hasbird == 1]
+        df_majority = metadata[metadata.hasbird == majority]
+        df_minority = metadata[metadata.hasbird != majority]
 
         # Upsample minority class
         df_minority_upsampled = resample(df_minority,

@@ -1,6 +1,4 @@
 import pandas as pd
-import numpy as np
-import matplotlib.pyplot as plt
 from pathlib import Path
 import networkx as nx
 
@@ -56,7 +54,6 @@ for x in last_cities:
 # Save graph
 save_location.parent.mkdir(parents=True, exist_ok=True)
 nx.write_gpickle(ug, save_location)
-
 
 
 k = helper_functions.random_subgraph(ug, depth=20, starting_node=2)
