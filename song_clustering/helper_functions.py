@@ -136,7 +136,7 @@ class AutoEncoder(nn.Module):
         self.batch_size = batch_size
         super(AutoEncoder, self).__init__()
 
-        self.encode = nn.Sequential(
+        self.encode_layers = nn.Sequential(
             nn.Unflatten(2, (16, 16)),
             nn.Conv2d(520, 256, 3, stride=3, padding=1),  # b, 16, 10, 10
             nn.ReLU(True),
@@ -148,7 +148,7 @@ class AutoEncoder(nn.Module):
             nn.ReLU(True),
         )
 
-        self.decode = nn.Sequential(
+        self.decode_layers = nn.Sequential(
             nn.ConvTranspose2d(4, 16, 2, stride=2),  # b, 16, 5, 5
             nn.ReLU(True),
             nn.Dropout(),
@@ -158,12 +158,19 @@ class AutoEncoder(nn.Module):
             nn.ConvTranspose2d(256, 520, 4, stride=2, padding=1),  # b, 8, 15, 15
             nn.Tanh(),
             nn.Flatten(2),
-            View([self.batch_size, 1, 520, 256])
         )
 
+    def encode(self, input_tensor):
+        x = input_tensor.view(input_tensor.size(0), 520, 256)
+        x = self.encode_layers(x)
+        return x
+
+    def encode(self, input_tensor):
+        x = self.decode_layers(input_tensor)
+        x = x.view(input_tensor.size(0), 1, 520, 256)
+        return x
+
     def forward(self, input_tensor: torch.Tensor) -> torch.Tensor:
-        self.batch_size = input_tensor.size(0)
-        x = input_tensor.view(self.batch_size, 520, 256)
-        x = self.encode(x)
+        x = self.encode(input_tensor)
         x = self.decode(x)
         return x
