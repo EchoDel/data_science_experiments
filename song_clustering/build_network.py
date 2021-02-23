@@ -65,25 +65,18 @@ if config_file.exists():
 else:
     model = helper_functions.AutoEncoder(song_identifier_inputs=len(train_loader.dataset),
                                          sample_location_inputs=maximum_sample_location)
+    model.to(device)
     metadata = {}
     starting_iteration = 0
 
-
-
-
 optimizer = optim.SGD(model.parameters(), lr=0.1, momentum=0.9)
 criterion = nn.L1Loss()
-model.to(device)
-
-steps = 0
-running_loss = 0
 
 for epoch in range(epochs_to_run):
     running_loss = 0
     epoch = starting_iteration + epoch
     model.train()
     for results, song_identifier, sample_location in train_loader:
-        steps += 1
         song_identifier, sample_location, results = \
             song_identifier.to(device).float(), sample_location.to(device).float(), results.to(device)
         optimizer.zero_grad()
