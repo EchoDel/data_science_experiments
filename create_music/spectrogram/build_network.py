@@ -64,8 +64,7 @@ if config_file.exists():
     model = torch.load(model_path)
 
 else:
-    model = helper_functions.SoundGenerator(song_identifier_inputs=len(train_loader.dataset),
-                                            sample_location_inputs=maximum_sample_location)
+    model = helper_functions.SoundGenerator()
     metadata = {}
     starting_iteration = 0
 
