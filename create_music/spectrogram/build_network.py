@@ -8,22 +8,23 @@ from torch import optim
 from torchvision import transforms
 from fma import utils as fmautils
 
-
+fma_set = 'medium'
+genre = 'Rock'
 # load the metadata for the fma dataset
 fma_base = Path('fma/data/fma_metadata')
-AUDIO_DIR = Path('../data/fma_medium')
+AUDIO_DIR = Path('../data/fma_' + fma_set)
 folder = fma_base / 'tracks.csv'
 tracks = fmautils.load(fma_base / 'tracks.csv')
-medium = tracks[tracks['set', 'subset'] <= 'medium']
-medium = medium.copy()
-medium[('path', '')] = medium.index.map(lambda x: Path(fmautils.get_audio_path(AUDIO_DIR, x)))
+fma_subset = tracks[tracks['set', 'subset'] <= fma_set]
+fma_subset = fma_subset.copy()
+fma_subset[('path', '')] = fma_subset.index.map(lambda x: Path(fmautils.get_audio_path(AUDIO_DIR, x)))
 
-medium_rock = medium[medium[('track', 'genre_top')] == 'Rock']
+medium_rock = fma_subset[fma_subset[('track', 'genre_top')] == genre]
 # medium_rock = medium_rock.sample(100)
 
 device = 'cuda'
 sample_length = 32768
-model_name = 'medium_rock'
+model_name = f'{fma_set}_{genre}'
 metadata_file = 'lofi_spectrogram_2'
 config_file = Path(f'models/{metadata_file}/metadata_{model_name}.json')
 loader_path = Path(f'models/{metadata_file}/loader_{model_name}.pth')
