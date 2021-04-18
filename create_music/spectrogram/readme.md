@@ -246,6 +246,11 @@ k = (12, 7)
 
 After 6000 epochs there was no significant progress, so an additional layer which captured the section of the song which was taken to build the network was introduced.
 This layer took a linear input of one hot encoded values of the starting index for the sample in the song and outputs and returns a shape (1,4096) tensor which can be added to the original first layer.
+However this did not provide any benefit so the random start point was removed from the model, and the model started to produce the expected output.
+
+### Training
+
+When training on a small sample the model quickly reduced the error on the training dataset showing the model
 
 # References
 
