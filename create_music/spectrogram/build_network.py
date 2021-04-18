@@ -33,8 +33,9 @@ save_every = 100
 sample_rate = 22050
 window_length = 2048
 maximum_sample_location = 4096
-y_size = 500
-batch_size = 32
+y_size = 512
+n_mels = 512
+batch_size = 16
 
 transformations = transforms.transforms.Compose([
     # transforms.transforms.Normalize(mean=[0.485, 0.456, 0.406],
@@ -48,7 +49,7 @@ train_loader = torch.utils.data.DataLoader(
                                    sr=sample_rate,
                                    window_length=window_length,
                                    y_size=y_size,
-                                   n_mels=256,
+                                   n_mels=n_mels,
                                    maximum_sample_location=maximum_sample_location),
     batch_size=batch_size)
 
