@@ -19,8 +19,8 @@ fma_subset = tracks[tracks['set', 'subset'] <= fma_set]
 fma_subset = fma_subset.copy()
 fma_subset[('path', '')] = fma_subset.index.map(lambda x: Path(fmautils.get_audio_path(AUDIO_DIR, x)))
 
-medium_rock = fma_subset[fma_subset[('track', 'genre_top')] == genre]
-# medium_rock = medium_rock.sample(100)
+fma_subset_sample = fma_subset[fma_subset[('track', 'genre_top')] == genre]
+fma_subset_sample = fma_subset_sample.sample(8)
 
 device = 'cuda'
 sample_length = 32768
@@ -42,7 +42,7 @@ transformations = transforms.transforms.Compose([
 ])
 
 train_loader = torch.utils.data.DataLoader(
-    helper_functions.SongIngestion(medium_rock,
+    helper_functions.SongIngestion(fma_subset_sample,
                                    sample_length=sample_length,
                                    transformations=transformations,
                                    sr=sample_rate,
