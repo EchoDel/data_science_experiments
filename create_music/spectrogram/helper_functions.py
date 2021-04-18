@@ -1,3 +1,5 @@
+from pathlib import Path
+
 import numpy as np
 import random as rand
 import librosa
@@ -64,14 +66,14 @@ def smooth(x, window_len=11, window='hanning'):
     return y[final_output:(final_output + len(x))]
 
 
-def load_sound_file(path, sr):
+def load_sound_file(path: Path, sr):
     try:
-        data, rate = librosa.load(path,
+        data, rate = librosa.load(str(path),
                                   sr=sr)
 
     except Exception as e:
         print(f"Reading of sample {path.name} failed")
-        print(e)
+        raise e
 
     return data, rate
 
