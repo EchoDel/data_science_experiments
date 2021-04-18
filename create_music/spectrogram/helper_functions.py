@@ -184,19 +184,7 @@ class SoundGenerator(nn.Module):
     def __init__(self, song_identifier_inputs, sample_location_inputs) -> None:
         super(SoundGenerator, self).__init__()
 
-        self.song_identifier_first_layer = nn.Sequential(
-            nn.Linear(song_identifier_inputs, 4096),
-            nn.ELU(inplace=True),
-            nn.Dropout()
-        )
-
-        self.sample_location_first_layer = nn.Sequential(
-            nn.Linear(sample_location_inputs, 4096),
-            nn.ELU(inplace=True),
-            nn.Dropout()
-        )
-
-        self.features = nn.Sequential(
+        self.encoder = nn.Sequential(
             nn.Conv2d(1, 64, kernel_size=4, stride=1, padding=2),
             nn.ReLU(inplace=True),
             nn.Dropout(),
@@ -207,34 +195,36 @@ class SoundGenerator(nn.Module):
             nn.Dropout(),
             nn.Conv2d(256, 384, kernel_size=4, stride=2, dilation=2),
             nn.ReLU(inplace=True),
+            nn.Dropout(),
             nn.Conv2d(384, 512, kernel_size=4, stride=1, dilation=3),
             nn.ReLU(inplace=True),
         )
 
-        self.upsample = nn.Sequential(
-            # todo rewrite to be more in line with the music theory
-            nn.Flatten(2)
-        )
-
-        self.output_layer = nn.Sequential(
+        self.decoder = nn.Sequential(
+            nn.Conv2d(512, 384, kernel_size=4, stride=1, dilation=3),
+            nn.ReLU(inplace=True),
             nn.Dropout(),
-            nn.Conv2d(1, 1, kernel_size=(7, 12), padding=0, stride=1, dilation=(2, 3))
+            nn.Conv2d(384, 256, kernel_size=4, stride=2, dilation=2),
+            nn.ReLU(inplace=True),
+            nn.Dropout(),
+            nn.Conv2d(256, 128, kernel_size=4, padding=1, dilation=2),
+            nn.ReLU(inplace=True),
+            nn.Dropout(),
+            nn.Conv2d(128, 64, kernel_size=4, padding=1, dilation=2),
+            nn.ReLU(inplace=True),
+            nn.Conv2d(64, 1, kernel_size=4, stride=1, padding=2),
+            nn.ReLU(inplace=True),
         )
 
-    def forward(self, song_identifier: torch.Tensor,
-                sample_location: torch.Tensor) -> torch.Tensor:
+    def encode(self, sample: torch.Tensor) -> torch.Tensor:
+        x = self.encoder(sample)
+        return x
 
-        # Takes the input of the ont hot encoded index of the sample from the metadata file
-        song_identifier = self.song_identifier_first_layer(song_identifier)
+    def decode(self, sample: torch.Tensor) -> torch.Tensor:
+        x = self.decoder(sample)
+        return x
 
-        # Takes the input of the ont hot encoded index of the starting value from the sample
-        sample_location = self.sample_location_first_layer(sample_location)
-
-        x = song_identifier + sample_location
-
-        x = x.view(x.size(0), 1, 64, 64)
-        x = self.features(x)
-        x = self.upsample(x)
-        x = x.view(x.size(0), 1, 512, 289)
-        # x = self.output_layer(x)
-        return x[0:x.size(0), 0, 0:500, 0:256]
+    def forward(self, sample: torch.Tensor) -> torch.Tensor:
+        x = self.encode(sample)
+        x = self.decode(x)
+        return x
