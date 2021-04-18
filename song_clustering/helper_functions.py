@@ -165,7 +165,7 @@ class AutoEncoder(nn.Module):
         x = self.encode_layers(x)
         return x
 
-    def encode(self, input_tensor):
+    def decode(self, input_tensor):
         x = self.decode_layers(input_tensor)
         x = x.view(input_tensor.size(0), 1, 520, 256)
         return x
