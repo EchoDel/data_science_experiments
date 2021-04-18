@@ -160,6 +160,7 @@ class SongIngestion(torch.utils.data.Dataset):
         sample = np.transpose(sample)
         sample = tensor(sample).float()
         sample = self.transformations(sample)
+        sample = sample.view(1, 500, 256)
         return sample, start_index
 
     def __next__(self):
