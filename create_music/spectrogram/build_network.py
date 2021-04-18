@@ -81,12 +81,11 @@ for epoch in range(epochs_to_run):
     running_loss = 0
     epoch = starting_iteration + epoch
     model.train()
-    for results, song_identifier, sample_location in train_loader:
+    for results in train_loader:
         steps += 1
-        song_identifier, sample_location, results = \
-            song_identifier.to(device).float(), sample_location.to(device).float(), results.to(device)
+        results = results.to(device)
         optimizer.zero_grad()
-        logps = model(song_identifier, sample_location)
+        logps = model(results)
         logps = logps.reshape([logps.shape[0], y_size, 256])
         loss = criterion(logps, results.type_as(logps))
         loss.backward()
