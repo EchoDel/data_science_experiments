@@ -181,38 +181,73 @@ class SongIngestion(torch.utils.data.Dataset):
 
 
 class SoundGenerator(nn.Module):
-    def __init__(self, song_identifier_inputs, sample_location_inputs) -> None:
+    def __init__(self) -> None:
         super(SoundGenerator, self).__init__()
 
+        conv_channels = [1, 64, 128, 256, 384, 512]
+        conv_kernels_size = [5, 5, 5, 5, 5]
+        conv_strides = [2, 2, 2, 2, 2]
+        conv_padding = [0, 0, 0, 0, 0]
+
         self.encoder = nn.Sequential(
-            nn.Conv2d(1, 64, kernel_size=4, stride=1, padding=2),
+            nn.Conv2d(conv_channels[0], conv_channels[1],
+                      kernel_size=conv_kernels_size[0],
+                      stride=conv_strides[0],
+                      padding=conv_padding[0]),
             nn.ReLU(inplace=True),
             nn.Dropout(),
-            nn.Conv2d(64, 128, kernel_size=4, padding=1, dilation=2),
+            nn.Conv2d(conv_channels[1], conv_channels[2],
+                      kernel_size=conv_kernels_size[1],
+                      stride=conv_strides[1],
+                      padding=conv_padding[1]),
             nn.ReLU(inplace=True),
-            nn.Conv2d(128, 256, kernel_size=4, padding=1, dilation=2),
+            nn.Conv2d(conv_channels[2], conv_channels[3],
+                      kernel_size=conv_kernels_size[2],
+                      stride=conv_strides[2],
+                      padding=conv_padding[2]),
             nn.ReLU(inplace=True),
             nn.Dropout(),
-            nn.Conv2d(256, 384, kernel_size=4, stride=2, dilation=2),
+            nn.Conv2d(conv_channels[3], conv_channels[4],
+                      kernel_size=conv_kernels_size[3],
+                      stride=conv_strides[3],
+                      padding=conv_padding[3]),
             nn.ReLU(inplace=True),
             nn.Dropout(),
-            nn.Conv2d(384, 512, kernel_size=4, stride=1, dilation=3),
+            nn.Conv2d(conv_channels[4], conv_channels[5],
+                      kernel_size=conv_kernels_size[4],
+                      stride=conv_strides[4],
+                      padding=conv_padding[4]),
             nn.ReLU(inplace=True),
         )
 
         self.decoder = nn.Sequential(
-            nn.Conv2d(512, 384, kernel_size=4, stride=1, dilation=3),
+            nn.Conv2d(conv_channels[5], conv_channels[4],
+                      kernel_size=conv_kernels_size[4],
+                      stride=conv_strides[4],
+                      padding=conv_padding[4]),
             nn.ReLU(inplace=True),
             nn.Dropout(),
-            nn.Conv2d(384, 256, kernel_size=4, stride=2, dilation=2),
+            nn.Conv2d(conv_channels[4], conv_channels[3],
+                      kernel_size=conv_kernels_size[3],
+                      stride=conv_strides[3],
+                      padding=conv_padding[3]),
             nn.ReLU(inplace=True),
             nn.Dropout(),
-            nn.Conv2d(256, 128, kernel_size=4, padding=1, dilation=2),
+            nn.Conv2d(conv_channels[3], conv_channels[2],
+                      kernel_size=conv_kernels_size[2],
+                      stride=conv_strides[2],
+                      padding=conv_padding[2]),
             nn.ReLU(inplace=True),
             nn.Dropout(),
-            nn.Conv2d(128, 64, kernel_size=4, padding=1, dilation=2),
+            nn.Conv2d(conv_channels[2], conv_channels[1],
+                      kernel_size=conv_kernels_size[1],
+                      stride=conv_strides[1],
+                      padding=conv_padding[1]),
             nn.ReLU(inplace=True),
-            nn.Conv2d(64, 1, kernel_size=4, stride=1, padding=2),
+            nn.Conv2d(conv_channels[1], conv_channels[0],
+                      kernel_size=conv_kernels_size[0],
+                      stride=conv_strides[0],
+                      padding=conv_padding[0]),
             nn.ReLU(inplace=True),
         )
 
