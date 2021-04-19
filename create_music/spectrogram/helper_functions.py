@@ -122,8 +122,8 @@ class SongIngestion(torch.utils.data.Dataset):
 
     def load_sound_file(self, itemid):
         if itemid not in self.sound_files:
-            if self.print_n % 100 == 0:
-                self.metadata.iloc[itemid, -1]
+            # if self.print_n % 100 == 0:
+            #     self.metadata.iloc[itemid, -1]
             self.print_n += 1
             self.sound_files[itemid] = load_sound_file(self.metadata.iloc[itemid, -1], self.sr)
         return self.sound_files[itemid]
