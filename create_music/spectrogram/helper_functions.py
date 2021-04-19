@@ -188,8 +188,8 @@ class SoundGenerator(nn.Module):
         conv_channels = [16, 64, 128, 256, 512]
         conv_kernels_size = [5, 5, 5, 5, 5]
         conv_strides = [2, 2, 2, 2, 2]
-        conv_encode_padding = [2, 2, 2, 1, 0]
         conv_decode_padding = [0, 0, 0, 0, 0]
+        conv_encode_padding = [2, 2, 2, 2, 2]
 
         self.encoder = nn.Sequential(
             nn.Conv2d(1, conv_channels[0],

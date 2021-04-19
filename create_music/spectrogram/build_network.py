@@ -25,7 +25,7 @@ fma_subset_sample = fma_subset_sample.sample(8)
 device = 'cuda'
 sample_length = 32768
 model_name = f'{fma_set}_{genre}'
-metadata_file = 'lofi_spectrogram_2'
+metadata_file = 'lofi_spectrogram'
 config_file = Path(f'models/{metadata_file}/metadata_{model_name}.json')
 loader_path = Path(f'models/{metadata_file}/loader_{model_name}.pth')
 epochs_to_run = 16000
@@ -85,8 +85,16 @@ for epoch in range(epochs_to_run):
         steps += 1
         results = results.to(device)
         optimizer.zero_grad()
+        break
+    break
+
+model.encode(results).shape
+logps = model(results)
+logps.shape
+
+
         logps = model(results)
-        logps = logps.reshape([logps.shape[0], y_size, 256])
+        # logps = logps.reshape([logps.shape[0], y_size, n_mels])
         loss = criterion(logps, results.type_as(logps))
         loss.backward()
         optimizer.step()
