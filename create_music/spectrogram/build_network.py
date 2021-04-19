@@ -60,26 +60,27 @@ if config_file.exists():
     for key, value in metadata.items():
         if 'path' in value:
             model_path = value['path']
-            starting_iteration = int(key)
+            epoch = int(key)
 
     model = torch.load(model_path)
 
 else:
     model = helper_functions.SoundGenerator()
     metadata = {}
-    starting_iteration = 0
+    epoch = 0
 
 
-optimizer = optim.SGD(model.parameters(), lr=0.1, momentum=0.9)
+optimizer = optim.Adam(model.parameters(), lr=0.5)
 criterion = nn.L1Loss()
 model.to(device)
 
 steps = 0
 running_loss = 0
+max_epoch = epoch + epochs_to_run
 
-for epoch in range(epochs_to_run):
+while epoch < max_epoch:
+    epoch += 1
     running_loss = 0
-    epoch = starting_iteration + epoch
     model.train()
     for results in train_loader:
         steps += 1
@@ -100,17 +101,17 @@ logps.shape
         optimizer.step()
         running_loss += loss.item()
 
-    print(f"Epoch {epoch + 1}/{epochs_to_run + starting_iteration}.. "
+    print(f"Epoch {epoch}/{max_epoch}.. "
           f"Train loss: {running_loss / len(train_loader.dataset):.3f}.. ")
 
     save_path = f'models/{metadata_file}/music_creation_{model_name}_{epoch + 1}.pth'
-    metadata[epoch + 1] = {
+    metadata[epoch] = {
         'running_loss': running_loss / len(train_loader.dataset),
     }
 
     if epoch % save_every == save_every - 1:
         Path(save_path).parent.mkdir(exist_ok=True, parents=True)
-        metadata[epoch + 1]['path'] = save_path
+        metadata[epoch]['path'] = save_path
         torch.save(model, save_path)
 
         # if loader_path.exists():
