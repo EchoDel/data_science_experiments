@@ -86,14 +86,6 @@ while epoch < max_epoch:
         steps += 1
         results = results.to(device)
         optimizer.zero_grad()
-        break
-    break
-
-model.encode(results).shape
-logps = model(results)
-logps.shape
-
-
         logps = model(results)
         # logps = logps.reshape([logps.shape[0], y_size, n_mels])
         loss = criterion(logps, results.type_as(logps))
