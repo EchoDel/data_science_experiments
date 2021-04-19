@@ -35,7 +35,7 @@ window_length = 2048
 maximum_sample_location = 4096
 y_size = 512
 n_mels = 512
-batch_size = 16
+batch_size = 32
 
 transformations = transforms.transforms.Compose([
     # transforms.transforms.Normalize(mean=[0.485, 0.456, 0.406],
