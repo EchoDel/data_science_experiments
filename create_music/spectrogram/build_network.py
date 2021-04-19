@@ -20,7 +20,7 @@ fma_subset = fma_subset.copy()
 fma_subset[('path', '')] = fma_subset.index.map(lambda x: Path(fmautils.get_audio_path(AUDIO_DIR, x)))
 
 fma_subset_sample = fma_subset[fma_subset[('track', 'genre_top')] == genre]
-fma_subset_sample = fma_subset_sample.sample(8)
+fma_subset_sample = fma_subset_sample.sample(128, random_state=10)
 
 device = 'cuda'
 sample_length = 32768
