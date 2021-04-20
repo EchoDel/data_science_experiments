@@ -57,6 +57,8 @@ if config_file.exists():
     with open(config_file, 'r') as outfile:
         metadata = json.load(outfile)
 
+    metadata = {int(key): value for key, value in metadata.items()}
+
     for key, value in metadata.items():
         if 'path' in value:
             model_path = value['path']
