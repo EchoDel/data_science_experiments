@@ -260,7 +260,7 @@ class SoundGenerator(nn.Module):
                                stride=conv_strides[0],
                                padding=conv_decode_padding[4],
                                output_padding=1),
-            nn.LeakyReLU(inplace=True),
+            nn.Sigmoid(),
             nn.Dropout(conv_decode_dropout[4]),
         )
 
