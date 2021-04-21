@@ -103,6 +103,9 @@ while epoch < max_epoch:
         'running_loss': running_loss / len(train_loader.dataset),
     }
 
+    if epoch == 0:
+        next
+
     if (epoch % save_every == save_every - 1) | \
             (metadata[epoch - 1]['running_loss'] - metadata[epoch]['running_loss'] > metadata[epoch]['running_loss'] / 5):
         Path(save_path).parent.mkdir(exist_ok=True, parents=True)
