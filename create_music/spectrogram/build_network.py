@@ -103,7 +103,7 @@ while epoch < max_epoch:
         'running_loss': running_loss / len(train_loader.dataset),
     }
 
-    if epoch == 0:
+    if epoch == 1:
         next
 
     if (epoch % save_every == save_every - 1) | \
