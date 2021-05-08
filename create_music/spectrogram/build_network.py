@@ -99,7 +99,7 @@ while epoch < max_epoch:
     print(f"Epoch {epoch}/{max_epoch}.. "
           f"Train loss: {running_loss / len(train_loader.dataset):.3f}.. ")
 
-    save_path = f'models/{metadata_file}/music_creation_{model_name}_{epoch + 1}.pth'
+    save_path = f'models/{metadata_file}/music_creation_{model_name}_{epoch}.pth'
     metadata[epoch] = {
         'running_loss': running_loss / len(train_loader.dataset),
     }
