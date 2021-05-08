@@ -72,7 +72,7 @@ else:
     epoch = 0
 
 
-optimizer = optim.Adam(model.parameters(), lr=0.05)
+optimizer = optim.Adam(model.parameters(), lr=0.005)
 criterion = nn.L1Loss()
 model.to(device)
 
