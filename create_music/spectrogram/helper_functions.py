@@ -1,3 +1,4 @@
+import random
 from pathlib import Path
 
 import numpy as np
@@ -113,6 +114,7 @@ class SongIngestion(torch.utils.data.Dataset):
         self.transformations = transformations
         self.sr = sr
         self.window_length = window_length
+        self.indexes = self.metadata.index.to_list()
         self.window = hamming(self.window_length, sym=False)
 
     def onehot(self, n, maximum):
@@ -120,13 +122,14 @@ class SongIngestion(torch.utils.data.Dataset):
         output[n] = 1
         return output
 
-    def load_sound_file(self, itemid):
-        if itemid not in self.sound_files:
+    def load_sound_file(self, trackid):
+        if trackid not in self.sound_files:
             # if self.print_n % 100 == 0:
             #     self.metadata.iloc[itemid, -1]
             self.print_n += 1
-            self.sound_files[itemid] = load_sound_file(self.metadata.iloc[itemid, -1], self.sr)
-        return self.sound_files[itemid]
+            # replace with trackid
+            self.sound_files[trackid] = load_sound_file(self.metadata.loc[[trackid]].iloc[0, -1], self.sr)
+        return self.sound_files[trackid]
 
     def load_spectrogram(self, data, rate):
         frequency_graph = librosa.feature.melspectrogram(data,
@@ -163,6 +166,9 @@ class SongIngestion(torch.utils.data.Dataset):
         sample = sample.view(1, self.y_size, self.n_mels)
         return sample, start_index
 
+    def shuffle(self):
+        random.shuffle(self.indexes)
+
     def __next__(self):
         if self.n < self.end:
             n = self.n
@@ -174,7 +180,7 @@ class SongIngestion(torch.utils.data.Dataset):
             raise StopIteration
 
     def __getitem__(self, index):
-        sample, start_index = self.load_sample(index)
+        sample, start_index = self.load_sample(self.indexes[index])
         return sample
 
     def __len__(self):

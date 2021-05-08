@@ -81,6 +81,7 @@ running_loss = 0
 max_epoch = epoch + epochs_to_run
 
 while epoch < max_epoch:
+    train_loader.dataset.shuffle()
     epoch += 1
     running_loss = 0
     model.train()
