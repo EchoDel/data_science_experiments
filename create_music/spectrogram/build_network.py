@@ -82,7 +82,6 @@ max_epoch = epoch + epochs_to_run
 
 while epoch < max_epoch:
     train_loader.dataset.shuffle()
-    epoch += 1
     running_loss = 0
     model.train()
     for results in train_loader:
@@ -104,8 +103,8 @@ while epoch < max_epoch:
         'running_loss': running_loss / len(train_loader.dataset),
     }
 
-    if epoch == 1:
-        next
+    if epoch == 0:
+        continue
 
     if (epoch % save_every == save_every - 1) | \
             (metadata[epoch - 1]['running_loss'] - metadata[epoch]['running_loss'] > metadata[epoch]['running_loss'] / 5):
@@ -118,3 +117,5 @@ while epoch < max_epoch:
 
         with open(config_file, 'w') as outfile:
             json.dump(metadata, outfile)
+
+    epoch += 1
