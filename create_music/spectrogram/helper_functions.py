@@ -1,3 +1,6 @@
+import random
+from pathlib import Path
+
 import numpy as np
 import random as rand
 import librosa
@@ -64,14 +67,14 @@ def smooth(x, window_len=11, window='hanning'):
     return y[final_output:(final_output + len(x))]
 
 
-def load_sound_file(path, sr):
+def load_sound_file(path: Path, sr):
     try:
-        data, rate = librosa.load(path,
+        data, rate = librosa.load(str(path),
                                   sr=sr)
 
     except Exception as e:
         print(f"Reading of sample {path.name} failed")
-        print(e)
+        raise e
 
     return data, rate
 
@@ -111,6 +114,7 @@ class SongIngestion(torch.utils.data.Dataset):
         self.transformations = transformations
         self.sr = sr
         self.window_length = window_length
+        self.indexes = self.metadata.index.to_list()
         self.window = hamming(self.window_length, sym=False)
 
     def onehot(self, n, maximum):
@@ -118,13 +122,14 @@ class SongIngestion(torch.utils.data.Dataset):
         output[n] = 1
         return output
 
-    def load_sound_file(self, itemid):
-        if itemid not in self.sound_files:
-            if self.print_n % 100 == 0:
-                self.metadata.iloc[itemid, -1]
+    def load_sound_file(self, trackid):
+        if trackid not in self.sound_files:
+            # if self.print_n % 100 == 0:
+            #     self.metadata.iloc[itemid, -1]
             self.print_n += 1
-            self.sound_files[itemid] = load_sound_file(self.metadata.iloc[itemid, -1], self.sr)
-        return self.sound_files[itemid]
+            # replace with trackid
+            self.sound_files[trackid] = load_sound_file(self.metadata.loc[[trackid]].iloc[0, -1], self.sr)
+        return self.sound_files[trackid]
 
     def load_spectrogram(self, data, rate):
         frequency_graph = librosa.feature.melspectrogram(data,
@@ -158,81 +163,122 @@ class SongIngestion(torch.utils.data.Dataset):
         sample = np.transpose(sample)
         sample = tensor(sample).float()
         sample = self.transformations(sample)
+        sample = sample.view(1, self.y_size, self.n_mels)
         return sample, start_index
+
+    def shuffle(self):
+        random.shuffle(self.indexes)
 
     def __next__(self):
         if self.n < self.end:
             n = self.n
-            sample, one_hot, sample_location = self.__getitem__(n)
+            sample = self.__getitem__(n)
             self.n += 1
-            return sample, one_hot, sample_location
+            return sample
         else:
             self.n = 0
             raise StopIteration
 
     def __getitem__(self, index):
-        sample, start_index = self.load_sample(index)
-        return sample, self.onehot(index, self.end), self.onehot(start_index, self.maximum_sample_location)
+        sample, start_index = self.load_sample(self.indexes[index])
+        return sample
 
     def __len__(self):
         return self.end
 
 
 class SoundGenerator(nn.Module):
-    def __init__(self, song_identifier_inputs, sample_location_inputs) -> None:
+    def __init__(self) -> None:
         super(SoundGenerator, self).__init__()
 
-        self.song_identifier_first_layer = nn.Sequential(
-            nn.Linear(song_identifier_inputs, 4096),
-            nn.ELU(inplace=True),
-            nn.Dropout()
+        conv_channels = [16, 64, 128, 256, 512]
+        conv_kernels_size = [5, 5, 5, 5, 5]
+        conv_strides = [2, 2, 2, 2, 2]
+        conv_encode_padding = [2, 2, 2, 2, 2]
+        conv_decode_padding = [2, 2, 2, 2, 2]
+        conv_encode_dropout = [0.2, 0, 0.2, 0.2, 0]
+        conv_decode_dropout = [0.2, 0, 0.2, 0.2, 0]
+
+        self.encoder = nn.Sequential(
+            nn.Conv2d(1, conv_channels[0],
+                      kernel_size=conv_kernels_size[0],
+                      stride=conv_strides[0],
+                      padding=conv_encode_padding[0]),
+            nn.ReLU(inplace=True),
+            nn.Dropout(conv_encode_dropout[0]),
+            nn.Conv2d(conv_channels[0], conv_channels[1],
+                      kernel_size=conv_kernels_size[1],
+                      stride=conv_strides[1],
+                      padding=conv_encode_padding[1]),
+            nn.ReLU(inplace=True),
+            nn.Dropout(conv_encode_dropout[1]),
+            nn.Conv2d(conv_channels[1], conv_channels[2],
+                      kernel_size=conv_kernels_size[2],
+                      stride=conv_strides[2],
+                      padding=conv_encode_padding[2]),
+            nn.ReLU(inplace=True),
+            nn.Dropout(conv_encode_dropout[2]),
+            nn.Conv2d(conv_channels[2], conv_channels[3],
+                      kernel_size=conv_kernels_size[3],
+                      stride=conv_strides[3],
+                      padding=conv_encode_padding[3]),
+            nn.ReLU(inplace=True),
+            nn.Dropout(conv_encode_dropout[3]),
+            nn.Conv2d(conv_channels[3], conv_channels[4],
+                      kernel_size=conv_kernels_size[4],
+                      stride=conv_strides[4],
+                      padding=conv_encode_padding[4]),
+            nn.ReLU(inplace=True),
+            nn.Dropout(conv_encode_dropout[4]),
         )
 
-        self.sample_location_first_layer = nn.Sequential(
-            nn.Linear(sample_location_inputs, 4096),
-            nn.ELU(inplace=True),
-            nn.Dropout()
+        self.decoder = nn.Sequential(
+            nn.ConvTranspose2d(conv_channels[4], conv_channels[3],
+                               kernel_size=conv_kernels_size[4],
+                               stride=conv_strides[4],
+                               padding=conv_decode_padding[0],
+                               output_padding=1),
+            nn.LeakyReLU(inplace=True),
+            nn.Dropout(conv_decode_dropout[0]),
+            nn.ConvTranspose2d(conv_channels[3], conv_channels[2],
+                               kernel_size=conv_kernels_size[3],
+                               stride=conv_strides[3],
+                               padding=conv_decode_padding[1],
+                               output_padding=1),
+            nn.LeakyReLU(inplace=True),
+            nn.Dropout(conv_decode_dropout[1]),
+            nn.ConvTranspose2d(conv_channels[2], conv_channels[1],
+                               kernel_size=conv_kernels_size[2],
+                               stride=conv_strides[2],
+                               padding=conv_decode_padding[2],
+                               output_padding=1),
+            nn.LeakyReLU(inplace=True),
+            nn.Dropout(conv_decode_dropout[2]),
+            nn.ConvTranspose2d(conv_channels[1], conv_channels[0],
+                               kernel_size=conv_kernels_size[1],
+                               stride=conv_strides[1],
+                               padding=conv_decode_padding[3],
+                               output_padding=1),
+            nn.LeakyReLU(inplace=True),
+            nn.Dropout(conv_decode_dropout[3]),
+            nn.ConvTranspose2d(conv_channels[0], 1,
+                               kernel_size=conv_kernels_size[0],
+                               stride=conv_strides[0],
+                               padding=conv_decode_padding[4],
+                               output_padding=1),
+            nn.Sigmoid(),
+            nn.Dropout(conv_decode_dropout[4]),
         )
 
-        self.features = nn.Sequential(
-            nn.Conv2d(1, 64, kernel_size=4, stride=1, padding=2),
-            nn.ReLU(inplace=True),
-            nn.Dropout(),
-            nn.Conv2d(64, 128, kernel_size=4, padding=1, dilation=2),
-            nn.ReLU(inplace=True),
-            nn.Conv2d(128, 256, kernel_size=4, padding=1, dilation=2),
-            nn.ReLU(inplace=True),
-            nn.Dropout(),
-            nn.Conv2d(256, 384, kernel_size=4, stride=2, dilation=2),
-            nn.ReLU(inplace=True),
-            nn.Conv2d(384, 512, kernel_size=4, stride=1, dilation=3),
-            nn.ReLU(inplace=True),
-        )
+    def encode(self, sample: torch.Tensor) -> torch.Tensor:
+        x = self.encoder(sample)
+        return x
 
-        self.upsample = nn.Sequential(
-            # todo rewrite to be more in line with the music theory
-            nn.Flatten(2)
-        )
+    def decode(self, sample: torch.Tensor) -> torch.Tensor:
+        x = self.decoder(sample)
+        return x
 
-        self.output_layer = nn.Sequential(
-            nn.Dropout(),
-            nn.Conv2d(1, 1, kernel_size=(7, 12), padding=0, stride=1, dilation=(2, 3))
-        )
-
-    def forward(self, song_identifier: torch.Tensor,
-                sample_location: torch.Tensor) -> torch.Tensor:
-
-        # Takes the input of the ont hot encoded index of the sample from the metadata file
-        song_identifier = self.song_identifier_first_layer(song_identifier)
-
-        # Takes the input of the ont hot encoded index of the starting value from the sample
-        sample_location = self.sample_location_first_layer(sample_location)
-
-        x = song_identifier + sample_location
-
-        x = x.view(x.size(0), 1, 64, 64)
-        x = self.features(x)
-        x = self.upsample(x)
-        x = x.view(x.size(0), 1, 512, 289)
-        # x = self.output_layer(x)
-        return x[0:x.size(0), 0, 0:500, 0:256]
+    def forward(self, sample: torch.Tensor) -> torch.Tensor:
+        x = self.encode(sample)
+        x = self.decode(x)
+        return x

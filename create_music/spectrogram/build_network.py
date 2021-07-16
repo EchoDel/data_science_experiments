@@ -8,31 +8,33 @@ from torch import optim
 from torchvision import transforms
 from fma import utils as fmautils
 
-
+fma_set = 'medium'
+genre = 'Rock'
 # load the metadata for the fma dataset
 fma_base = Path('fma/data/fma_metadata')
-AUDIO_DIR = Path('../data/fma_medium')
+AUDIO_DIR = Path('../data/fma_' + fma_set)
 folder = fma_base / 'tracks.csv'
 tracks = fmautils.load(fma_base / 'tracks.csv')
-medium = tracks[tracks['set', 'subset'] <= 'medium']
-medium = medium.copy()
-medium[('path', '')] = medium.index.map(lambda x: Path(fmautils.get_audio_path(AUDIO_DIR, x)))
+fma_subset = tracks[tracks['set', 'subset'] <= fma_set]
+fma_subset = fma_subset.copy()
+fma_subset[('path', '')] = fma_subset.index.map(lambda x: Path(fmautils.get_audio_path(AUDIO_DIR, x)))
 
-medium_rock = medium[medium[('track', 'genre_top')] == 'Rock']
-# medium_rock = medium_rock.sample(100)
+fma_subset_sample = fma_subset[fma_subset[('track', 'genre_top')] == genre]
+fma_subset_sample = fma_subset_sample.sample(128, random_state=10)
 
 device = 'cuda'
 sample_length = 32768
-model_name = 'medium_rock'
-metadata_file = 'lofi_spectrogram_2'
+model_name = f'{fma_set}_{genre}'
+metadata_file = 'lofi_spectrogram'
 config_file = Path(f'models/{metadata_file}/metadata_{model_name}.json')
 loader_path = Path(f'models/{metadata_file}/loader_{model_name}.pth')
 epochs_to_run = 16000
-save_every = 100
+save_every = 1000
 sample_rate = 22050
 window_length = 2048
 maximum_sample_location = 4096
-y_size = 500
+y_size = 512
+n_mels = 512
 batch_size = 32
 
 transformations = transforms.transforms.Compose([
@@ -41,13 +43,13 @@ transformations = transforms.transforms.Compose([
 ])
 
 train_loader = torch.utils.data.DataLoader(
-    helper_functions.SongIngestion(medium_rock,
+    helper_functions.SongIngestion(fma_subset_sample,
                                    sample_length=sample_length,
                                    transformations=transformations,
                                    sr=sample_rate,
                                    window_length=window_length,
                                    y_size=y_size,
-                                   n_mels=256,
+                                   n_mels=n_mels,
                                    maximum_sample_location=maximum_sample_location),
     batch_size=batch_size)
 
@@ -55,54 +57,59 @@ if config_file.exists():
     with open(config_file, 'r') as outfile:
         metadata = json.load(outfile)
 
+    metadata = {int(key): value for key, value in metadata.items()}
+
     for key, value in metadata.items():
         if 'path' in value:
             model_path = value['path']
-            starting_iteration = int(key)
+            epoch = int(key)
 
     model = torch.load(model_path)
 
 else:
-    model = helper_functions.SoundGenerator(song_identifier_inputs=len(train_loader.dataset),
-                                            sample_location_inputs=maximum_sample_location)
+    model = helper_functions.SoundGenerator()
     metadata = {}
-    starting_iteration = 0
+    epoch = 0
 
 
-optimizer = optim.SGD(model.parameters(), lr=0.1, momentum=0.9)
+optimizer = optim.Adam(model.parameters(), lr=0.005)
 criterion = nn.L1Loss()
 model.to(device)
 
 steps = 0
 running_loss = 0
+max_epoch = epoch + epochs_to_run
 
-for epoch in range(epochs_to_run):
+while epoch < max_epoch:
+    train_loader.dataset.shuffle()
     running_loss = 0
-    epoch = starting_iteration + epoch
     model.train()
-    for results, song_identifier, sample_location in train_loader:
+    for results in train_loader:
         steps += 1
-        song_identifier, sample_location, results = \
-            song_identifier.to(device).float(), sample_location.to(device).float(), results.to(device)
+        results = results.to(device)
         optimizer.zero_grad()
-        logps = model(song_identifier, sample_location)
-        logps = logps.reshape([logps.shape[0], y_size, 256])
+        logps = model(results)
+        # logps = logps.reshape([logps.shape[0], y_size, n_mels])
         loss = criterion(logps, results.type_as(logps))
         loss.backward()
         optimizer.step()
         running_loss += loss.item()
 
-    print(f"Epoch {epoch + 1}/{epochs_to_run + starting_iteration}.. "
+    print(f"Epoch {epoch}/{max_epoch}.. "
           f"Train loss: {running_loss / len(train_loader.dataset):.3f}.. ")
 
-    save_path = f'models/{metadata_file}/music_creation_{model_name}_{epoch + 1}.pth'
-    metadata[epoch + 1] = {
+    save_path = f'models/{metadata_file}/music_creation_{model_name}_{epoch}.pth'
+    metadata[epoch] = {
         'running_loss': running_loss / len(train_loader.dataset),
     }
 
-    if epoch % save_every == save_every - 1:
+    if epoch == 0:
+        continue
+
+    if (epoch % save_every == save_every - 1) | \
+            (metadata[epoch - 1]['running_loss'] - metadata[epoch]['running_loss'] > metadata[epoch]['running_loss'] / 5):
         Path(save_path).parent.mkdir(exist_ok=True, parents=True)
-        metadata[epoch + 1]['path'] = save_path
+        metadata[epoch]['path'] = save_path
         torch.save(model, save_path)
 
         # if loader_path.exists():
@@ -110,3 +117,5 @@ for epoch in range(epochs_to_run):
 
         with open(config_file, 'w') as outfile:
             json.dump(metadata, outfile)
+
+    epoch += 1
