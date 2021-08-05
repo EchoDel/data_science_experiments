@@ -2,3 +2,4 @@
 *.pyc
 *.pth
 create_music/linear_model/outputs/lofi/*
+/cache/*
