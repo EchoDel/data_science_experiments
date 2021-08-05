@@ -17,7 +17,8 @@ folder = fma_base / 'tracks.csv'
 tracks = fmautils.load(fma_base / 'tracks.csv')
 fma_subset = tracks[tracks['set', 'subset'] <= fma_set]
 fma_subset = fma_subset.copy()
-fma_subset[('path', '')] = fma_subset.index.map(lambda x: Path(fmautils.get_audio_path(AUDIO_DIR, x)))
+fma_subset[('path', '')] = fma_subset.index.map(
+    lambda x: Path(fmautils.get_audio_path(AUDIO_DIR, x)))
 
 fma_subset_sample = fma_subset[fma_subset[('track', 'genre_top')] == genre]
 fma_subset_sample = fma_subset_sample.sample(128, random_state=10)
@@ -25,7 +26,7 @@ fma_subset_sample = fma_subset_sample.sample(128, random_state=10)
 device = 'cuda'
 sample_length = 32768
 model_name = f'{fma_set}_{genre}'
-metadata_file = 'lofi_spectrogram'
+metadata_file = 'rock_spectrogram_tiny_1'
 config_file = Path(f'models/{metadata_file}/metadata_{model_name}.json')
 loader_path = Path(f'models/{metadata_file}/loader_{model_name}.pth')
 epochs_to_run = 16000
@@ -65,6 +66,7 @@ if config_file.exists():
             epoch = int(key)
 
     model = torch.load(model_path)
+    train_loader = torch.load(loader_path)
 
 else:
     model = helper_functions.SoundGenerator()
@@ -72,7 +74,7 @@ else:
     epoch = 0
 
 
-optimizer = optim.Adam(model.parameters(), lr=0.005)
+optimizer = optim.AdamW(model.parameters(), lr=0.0001)
 criterion = nn.L1Loss()
 model.to(device)
 
@@ -104,16 +106,18 @@ while epoch < max_epoch:
     }
 
     if epoch == 0:
+        epoch += 1
         continue
 
-    if (epoch % save_every == save_every - 1) | \
+    if (epoch % save_every == save_every) | \
             (metadata[epoch - 1]['running_loss'] - metadata[epoch]['running_loss'] > metadata[epoch]['running_loss'] / 5):
+        print(f'Writing model {epoch}')
         Path(save_path).parent.mkdir(exist_ok=True, parents=True)
         metadata[epoch]['path'] = save_path
         torch.save(model, save_path)
 
-        # if loader_path.exists():
-        #     torch.save(train_loader, loader_path)
+        if not loader_path.exists():
+            torch.save(train_loader, loader_path)
 
         with open(config_file, 'w') as outfile:
             json.dump(metadata, outfile)
