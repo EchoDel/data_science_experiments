@@ -16,7 +16,7 @@ class ExchangeSimulation:
         self.trading_percent_cost = trading_percent_cost
         self.trading_cost = trading_cost
 
-        self.gbp = 0
+        self.usd = 0
         self.eur = 0
         self.current_index = 0
         self.steps = 0
@@ -27,7 +27,7 @@ class ExchangeSimulation:
         return self.training_data[self.index].timestamp.to_list()[0]
 
     def reset(self, starting_point: datetime = None):
-        self.gbp = self.starting_cash
+        self.usd = self.starting_cash
         self.eur = 0
         if starting_point is None:
             sample = self.training_data.sample(1)
@@ -39,16 +39,16 @@ class ExchangeSimulation:
 
     def reward(self):
         exchange_rate = self.training_data.iloc[self.current_index].Open
-        return self.gbp + self.eur * (1 / exchange_rate)
+        return (self.usd + self.eur * (1 / exchange_rate)) * 0.001 - 1
 
     def done(self):
-        return self.reward() < self.starting_cash / 2
+        return self.reward() < -0.5
 
     def get_state(self):
         new_data = self.training_data.iloc[self.current_index].to_list()
 
         return new_data[1], \
-            self.get_state_tensor([self.gbp, self.eur] + new_data[0:1] + new_data[2:]), \
+            self.get_state_tensor([self.usd, self.eur] + new_data[0:1] + new_data[2:]), \
             self.reward(), \
             self.done()
 
@@ -61,26 +61,26 @@ class ExchangeSimulation:
         :return: current timestamp,
         current state,
         reward,
-         done
+        done
         '''
         self.current_index += 1
         self.steps += 1
         exchange_rate = self.training_data.iloc[self.current_index].Open
         if action == 0:
-            current_gbp = self.gbp
-            self.gbp = current_gbp / 2
-            self.eur = self.eur + current_gbp / 2 * exchange_rate * \
+            current_usd = self.usd
+            self.usd = current_usd / 2
+            self.eur = self.eur + current_usd / 2 * exchange_rate * \
                 (1 - self.trading_percent_cost) - self.trading_cost
         elif action == 2:
             exchange_rate = 1 / exchange_rate
-            self.gbp = self.gbp + self.eur * exchange_rate * \
+            self.usd = self.usd + self.eur * exchange_rate * \
                 (1 - self.trading_percent_cost)
             self.eur = 0
-            self.gbp = self.gbp - self.trading_cost
+            self.usd = self.usd - self.trading_cost
 
         new_data = self.training_data.iloc[self.current_index].to_list()
 
         return new_data[1], \
-            self.get_state_tensor([self.gbp, self.eur] + new_data[0:1] + new_data[2:]), \
+            self.get_state_tensor([self.usd, self.eur] + new_data[0:1] + new_data[2:]), \
             self.reward(), \
             self.done()
