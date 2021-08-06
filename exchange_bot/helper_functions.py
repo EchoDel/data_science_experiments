@@ -24,6 +24,7 @@ class ExchangeBot(nn.Module):
             nn.Linear(input_size, input_size * 2),
             nn.ReLU(relu_percentage),
             nn.Linear(input_size * 2, input_size * 4),
+            nn.Dropout(),
             nn.ReLU(relu_percentage),
         )
 
