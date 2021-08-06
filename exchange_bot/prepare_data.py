@@ -22,7 +22,7 @@ except Exception as E:
     source_data = source_data.drop('Time', axis='columns')
     source_data = source_data.drop('Date', axis='columns')
 
-    source_data = source_data.set_index('timestamp')
+    source_data = source_data.reset_index(drop = True)
 
     source_data = source_data.drop('High', axis='columns')
     source_data = source_data.drop('Low', axis='columns')
