@@ -26,12 +26,13 @@ except Exception as E:
 
     source_data = source_data.drop('High', axis='columns')
     source_data = source_data.drop('Low', axis='columns')
-    source_data = source_data.drop('Close', axis='columns')
+    source_data = source_data.drop('Open', axis='columns')
     source_data = source_data.drop('Volume', axis='columns')
 
     for observation in range(1, 41):
-        source_data['EMA' + str(observation)] = \
-            source_data.Open.ewm(observation).mean()
+        observation_period = observation * 60
+        source_data['EMA' + str(observation_period)] = \
+            source_data.Open.ewm(observation_period).mean()
 
     pkl.dump(source_data, open(temp_file, 'wb'))
 
