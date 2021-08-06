@@ -17,7 +17,7 @@ class ExchangeBot(nn.Module):
 
     def __init__(self, input_size: int, output_size: int,
                  relu_percentage: float, device: str):
-        super(ExchangeBot).__init__()
+        super(ExchangeBot, self).__init__()
         self.device = device
 
         self.features = nn.Sequential(
