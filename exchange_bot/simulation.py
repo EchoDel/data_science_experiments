@@ -1,4 +1,6 @@
 from datetime import datetime
+from math import copysign, e
+
 import pandas as pd
 import torch
 
@@ -41,8 +43,8 @@ class ExchangeSimulation:
         self.starting_index = self.current_index
 
     def reward(self):
-        exchange_rate = self.training_data.iloc[self.current_index].Close
-        return (self.usd + self.eur * (1 / exchange_rate)) * 0.001 - 1
+        exponent = self.usd * 0.01 - 10
+        return copysign(e**exponent, exponent)
 
     def done(self):
         if self.current_index == self.max_index:
