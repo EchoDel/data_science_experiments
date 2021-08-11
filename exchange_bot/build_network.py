@@ -2,6 +2,7 @@ import math
 from collections import deque, namedtuple
 import random
 from itertools import count
+import progressbar
 
 import torch
 from matplotlib import pyplot as plt
@@ -157,15 +158,27 @@ def plot_durations():
 
     plt.pause(0.001)  # pause a bit so that plots are updated
 
+
 def get_state_tensor(state):
     state_tensor = state
     return state_tensor
+
+
+widgets = [
+    ' [', progressbar.Timer(), '] ',
+    progressbar.Bar(marker=progressbar.RotatingMarker()),
+    'Interations:', progressbar.Counter(), '   ',
+    progressbar.Variable('cash', precision=5)
+]
 
 num_episodes = 50
 for i_episode in range(num_episodes):
     # Initialize the environment and state
     simulation.reset()
     _, state, reward, done = simulation.get_state()
+    bar = progressbar.ProgressBar(max_value=progressbar.UnknownLength,
+                                  variables={'cash': reward.item() * 1000},
+                                  widgets=widgets)
     for t in count():
         # Select and perform an action
         action = select_action(state)
@@ -190,6 +203,8 @@ for i_episode in range(num_episodes):
             episode_durations.append(t + 1)
             plot_durations()
             break
+        bar.update(t)
+        bar.update(cash=reward.item()*1000)
     # Update the target network, copying all weights and biases in DQN
     if i_episode % TARGET_UPDATE == 0:
         target_net.load_state_dict(policy_net.state_dict())
