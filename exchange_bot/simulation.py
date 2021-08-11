@@ -16,9 +16,11 @@ class ExchangeSimulation:
         self.trading_percent_cost = trading_percent_cost
         self.trading_cost = trading_cost
 
+        self.max_index = self.training_data.index.argmax()
         self.usd = 0
         self.eur = 0
         self.current_index = 0
+        self.starting_index = 0
         self.steps = 0
 
         self.reset()
@@ -36,12 +38,17 @@ class ExchangeSimulation:
                                         starting_point]
 
         self.current_index = sample.index[0]
+        self.starting_index = self.current_index
 
     def reward(self):
         exchange_rate = self.training_data.iloc[self.current_index].Close
         return (self.usd + self.eur * (1 / exchange_rate)) * 0.001 - 1
 
     def done(self):
+        if self.current_index == self.max_index:
+            return True
+        elif self.starting_index + 525600 < self.current_index:
+            return True
         return self.reward() < -0.5
 
     def get_state(self):
