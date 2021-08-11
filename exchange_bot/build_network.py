@@ -98,7 +98,8 @@ def optimize_model():
     # Compute a mask of non-final states and concatenate the batch elements
     # (a final state would've been the one after which simulation ended)
     non_final_mask = torch.tensor(tuple(map(lambda s: s is not None,
-                                            batch.next_state)), device=device, dtype=torch.bool)
+                                            batch.next_state)),
+                                  device=device, dtype=torch.bool)
     non_final_next_states = torch.cat([s for s in batch.next_state
                                        if s is not None]).view(
         (batch_size, list(batch.state[0].shape)[0],))
