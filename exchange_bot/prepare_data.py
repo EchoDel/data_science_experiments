@@ -32,7 +32,7 @@ except Exception as E:
     for observation in range(1, 41):
         observation_period = observation * 60
         source_data['EMA' + str(observation_period)] = \
-            source_data.Open.ewm(observation_period).mean()
+            source_data.Close.ewm(observation_period).mean()
 
     pkl.dump(source_data, open(temp_file, 'wb'))
 

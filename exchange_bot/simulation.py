@@ -38,7 +38,7 @@ class ExchangeSimulation:
         self.current_index = sample.index[0]
 
     def reward(self):
-        exchange_rate = self.training_data.iloc[self.current_index].Open
+        exchange_rate = self.training_data.iloc[self.current_index].Close
         return (self.usd + self.eur * (1 / exchange_rate)) * 0.001 - 1
 
     def done(self):
@@ -65,7 +65,7 @@ class ExchangeSimulation:
         '''
         self.current_index += 1
         self.steps += 1
-        exchange_rate = self.training_data.iloc[self.current_index].Open
+        exchange_rate = self.training_data.iloc[self.current_index].Close
         if action == 0:
             current_usd = self.usd
             self.usd = current_usd / 2
