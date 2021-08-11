@@ -162,11 +162,6 @@ def plot_durations():
     plt.pause(0.001)  # pause a bit so that plots are updated
 
 
-def get_state_tensor(state):
-    state_tensor = state
-    return state_tensor
-
-
 widgets = [
     ' [', progressbar.Timer(), '] ',
     progressbar.Bar(marker=progressbar.RotatingMarker()),
