@@ -13,7 +13,7 @@ from exchange_bot.helper_functions import ExchangeBot
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-BATCH_SIZE = 128
+BATCH_SIZE = 2400
 GAMMA = 0.999
 EPS_START = 0.9
 EPS_END = 0.05
@@ -93,22 +93,24 @@ def optimize_model():
     # to Transition of batch-arrays.
     batch = Transition(*zip(*transitions))
 
+    batch_size = len(batch.state)
+
     # Compute a mask of non-final states and concatenate the batch elements
     # (a final state would've been the one after which simulation ended)
     non_final_mask = torch.tensor(tuple(map(lambda s: s is not None,
                                             batch.next_state)), device=device, dtype=torch.bool)
     non_final_next_states = torch.cat([s for s in batch.next_state
                                        if s is not None]).view(
-        (BATCH_SIZE, list(batch.state[0].shape)[0],))
+        (batch_size, list(batch.state[0].shape)[0],))
 
     state_batch = torch.cat(batch.state, dim=0).view(
-        (BATCH_SIZE, list(batch.state[0].shape)[0],))
+        (batch_size, list(batch.state[0].shape)[0],))
 
     action_batch = torch.cat(batch.action).view(
-        (BATCH_SIZE, list(batch.action[0].shape)[0],))
+        (batch_size, list(batch.action[0].shape)[0],))
 
     reward_batch = torch.cat(batch.reward).view(
-        (BATCH_SIZE, list(batch.action[0].shape)[0],))
+        (batch_size, list(batch.reward[0].shape)[0],))
 
     # Compute Q(s_t, a) - the model computes Q(s_t), then we select the
     # columns of actions taken. These are the actions which would've been taken
@@ -120,7 +122,7 @@ def optimize_model():
     # on the "older" target_net; selecting their best reward with max(1)[0].
     # This is merged based on the mask, such that we'll have either the expected
     # state value or 0 in case the state was final.
-    next_state_values = torch.zeros((BATCH_SIZE, n_actions), device=device)
+    next_state_values = torch.zeros((batch_size, n_actions), device=device)
     next_state_values[non_final_mask] = target_net(non_final_next_states)
     # Compute the expected Q values
     # GET REWARD BATH TO 128*3
