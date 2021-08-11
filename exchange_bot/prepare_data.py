@@ -29,7 +29,7 @@ except Exception as E:
     source_data = source_data.drop('Open', axis='columns')
     source_data = source_data.drop('Volume', axis='columns')
 
-    for observation in range(1, 41):
+    for observation in range(1, 144):
         observation_period = observation * 60
         source_data['EMA' + str(observation_period)] = \
             source_data.Close.ewm(observation_period).mean()
