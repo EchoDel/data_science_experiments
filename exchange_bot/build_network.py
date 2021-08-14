@@ -13,7 +13,7 @@ from exchange_bot.helper_functions import ExchangeBot, plot_durations
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-BATCH_SIZE = 2400
+BATCH_SIZE = 128
 GAMMA = 0.999
 EPS_START = 0.9
 EPS_END = 0.05
