@@ -88,8 +88,7 @@ class ExchangeSimulation:
             self.usd = current_usd * self.sell_percentage
             sales_volume = current_usd * (1 - self.sell_percentage)
             self.sales_usd += sales_volume
-            self.eur = self.eur + \
-                       sales_volume * exchange_rate * \
+            self.eur = self.eur + sales_volume * exchange_rate * \
                 (1 - self.trading_percent_cost) - self.trading_cost
         elif action == 2:  # sell
             exchange_rate = 1 / exchange_rate
@@ -106,6 +105,8 @@ class ExchangeSimulation:
         new_data = self.training_data.iloc[self.current_index].to_list()
 
         return new_data[1], \
-            self.get_state_tensor([self.usd, self.eur] + new_data[0:1] + new_data[2:]), \
+            self.get_state_tensor([self.usd, self.eur] +
+                                  new_data[0:1] +
+                                  new_data[2:]), \
             self.reward(), \
             self.done()
