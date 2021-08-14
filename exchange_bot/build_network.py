@@ -80,10 +80,10 @@ def select_action(state):
             # t.max(1) will return largest column value of each row.
             # second column on max result is index of where max element was
             # found, so we pick action with the larger expected reward.
-            return policy_net(state).argmax().view(1)
+            return policy_net(state).max(0)[1].view(1, 1)
     else:
-        return torch.tensor([random.randrange(n_actions)],
-                            device=device, dtype=torch.long)
+        return torch.tensor([[random.randrange(n_actions)]], device=device,
+                            dtype=torch.long)
 
 
 def optimize_model():
