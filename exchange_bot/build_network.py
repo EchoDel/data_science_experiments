@@ -36,12 +36,12 @@ sample_simulation_return = simulation.get_state()
 # Setup the networks
 policy_net = ExchangeBot(input_size=len(sample_simulation_return[1]),
                          output_size=n_actions,
-                         relu_percentage=0.3,
+                         dropout_percentage=0.3,
                          device=device).to(device)
 
 target_net = ExchangeBot(input_size=len(sample_simulation_return[1]),
                          output_size=3,
-                         relu_percentage=0.3,
+                         dropout_percentage=0.3,
                          device=device).to(device)
 
 target_net.load_state_dict(policy_net.state_dict())

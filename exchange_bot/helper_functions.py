@@ -17,21 +17,21 @@ class ExchangeBot(nn.Module):
     '''
 
     def __init__(self, input_size: int, output_size: int,
-                 relu_percentage: float, device: str):
+                 dropout_percentage: float, device: str):
         super(ExchangeBot, self).__init__()
         self.device = device
 
         self.features = nn.Sequential(
             nn.Linear(input_size, input_size * 2),
-            nn.ReLU(relu_percentage),
+            nn.ReLU(),
             nn.Linear(input_size * 2, input_size * 4),
-            nn.Dropout(),
-            nn.ReLU(relu_percentage),
+            nn.Dropout(dropout_percentage),
+            nn.ReLU(),
         )
 
         self.classifier = nn.Sequential(
             nn.Linear(input_size * 4, input_size * 2),
-            nn.ReLU(relu_percentage),
+            nn.ReLU(),
             nn.Linear(input_size * 2, output_size),
         )
 
@@ -39,7 +39,6 @@ class ExchangeBot(nn.Module):
         input_tensor = input_tensor.to(self.device)
         feature = self.features(input_tensor)
         return self.classifier(feature)
-
 
 
 def plot_durations(episode_durations, episode_reward):
