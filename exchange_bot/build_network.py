@@ -147,7 +147,7 @@ widgets = [
     ' [', progressbar.Timer(), '] ',
     progressbar.Bar(marker=progressbar.RotatingMarker()),
     'Interations:', progressbar.Counter(), '   ',
-    progressbar.Variable('cash', precision=5)
+    progressbar.Variable('reward', precision=5)
 ]
 
 num_episodes = 50
@@ -156,7 +156,7 @@ for i_episode in range(num_episodes):
     simulation.reset()
     _, state, reward, done = simulation.get_state()
     bar = progressbar.ProgressBar(max_value=progressbar.UnknownLength,
-                                  variables={'cash': reward.item() * 1000},
+                                  variables={'reward': reward.item() * 1000},
                                   widgets=widgets)
     for t in count():
         # Select and perform an action
@@ -175,7 +175,6 @@ for i_episode in range(num_episodes):
 
         # Move to the next state
         state = next_state
-
         # Perform one step of the optimization (on the policy network)
         optimize_model()
         if done:
@@ -184,7 +183,7 @@ for i_episode in range(num_episodes):
             #plot_durations(episode_durations, episode_reward)
             break
         bar.update(t)
-        bar.update(cash=reward.item()*1000)
+        bar.update(reward=reward.item())
     # Update the target network, copying all weights and biases in DQN
     if i_episode % TARGET_UPDATE == 0:
         target_net.load_state_dict(policy_net.state_dict())
