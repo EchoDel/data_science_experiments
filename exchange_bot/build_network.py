@@ -9,7 +9,7 @@ from matplotlib import pyplot as plt
 from torch import optim, nn
 from exchange_bot.prepare_data import final_data
 from exchange_bot.simulation import ExchangeSimulation
-from exchange_bot.helper_functions import ExchangeBot
+from exchange_bot.helper_functions import ExchangeBot, plot_durations
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
@@ -142,25 +142,7 @@ def optimize_model():
 
 memory = ReplayMemory(10000)
 episode_durations = []
-
-
-
-def plot_durations():
-    plt.figure(2)
-    plt.clf()
-    durations_t = torch.tensor(episode_durations, dtype=torch.float)
-    plt.title('Training...')
-    plt.xlabel('Episode')
-    plt.ylabel('Duration')
-    plt.plot(durations_t.numpy())
-    # Take 100 episode averages and plot them too
-    if len(durations_t) >= 100:
-        means = durations_t.unfold(0, 100, 1).mean(1).view(-1)
-        means = torch.cat((torch.zeros(99), means))
-        plt.plot(means.numpy())
-
-    plt.pause(0.001)  # pause a bit so that plots are updated
-
+episode_reward = []
 
 widgets = [
     ' [', progressbar.Timer(), '] ',
@@ -199,7 +181,8 @@ for i_episode in range(num_episodes):
         optimize_model()
         if done:
             episode_durations.append(t + 1)
-            plot_durations()
+            episode_reward.append(reward.item())
+            #plot_durations(episode_durations, episode_reward)
             break
         bar.update(t)
         bar.update(cash=reward.item()*1000)
