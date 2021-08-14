@@ -85,8 +85,8 @@ class ExchangeSimulation:
         exchange_rate = self.training_data.iloc[self.current_index].Close
         if action == 0:  # buy
             current_usd = self.usd
-            self.usd = current_usd * self.sell_percentage
-            sales_volume = current_usd * (1 - self.sell_percentage)
+            self.usd = current_usd * (1 - self.sell_percentage)
+            sales_volume = current_usd * self.sell_percentage
             self.sales_usd += sales_volume
             self.eur = self.eur + sales_volume * exchange_rate * \
                 (1 - self.trading_percent_cost) - self.trading_cost
