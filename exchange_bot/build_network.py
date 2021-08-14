@@ -110,27 +110,26 @@ def optimize_model():
     action_batch = torch.cat(batch.action).view(
         (batch_size, list(batch.action[0].shape)[0],))
     reward_batch = torch.cat(batch.reward).view(
-        (batch_size, list(batch.reward[0].shape)[0],))
+        (list(batch.reward[0].shape)[0], batch_size,))
 
     # Compute Q(s_t, a) - the model computes Q(s_t), then we select the
     # columns of actions taken. These are the actions which would've been taken
     # for each batch state according to policy_net
-    state_action_values = policy_net(state_batch)
+    state_action_values = policy_net(state_batch).gather(1, action_batch)
 
     # Compute V(s_{t+1}) for all next states.
     # Expected values of actions for non_final_next_states are computed based
     # on the "older" target_net; selecting their best reward with max(1)[0].
     # This is merged based on the mask, such that we'll have either the expected
     # state value or 0 in case the state was final.
-    next_state_values = torch.zeros((batch_size, n_actions), device=device)
-    next_state_values[non_final_mask] = target_net(non_final_next_states)
+    next_state_values = torch.zeros(BATCH_SIZE, device=device)
+    next_state_values[non_final_mask] = target_net(non_final_next_states).max(1)[0].detach()
     # Compute the expected Q values
-    # GET REWARD BATH TO 128*3
     expected_state_action_values = (next_state_values * GAMMA) + reward_batch
 
     # Compute Huber loss
     criterion = nn.SmoothL1Loss()
-    loss = criterion(state_action_values, expected_state_action_values.float())
+    loss = criterion(state_action_values, expected_state_action_values.transpose(0, 1))
 
     # Optimize the model
     optimizer.zero_grad()
@@ -138,6 +137,7 @@ def optimize_model():
     for param in policy_net.parameters():
         param.grad.data.clamp_(-1, 1)
     optimizer.step()
+
 
 memory = ReplayMemory(10000)
 episode_durations = []
