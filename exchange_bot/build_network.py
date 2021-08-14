@@ -20,6 +20,7 @@ EPS_END = 0.05
 EPS_DECAY = 200
 TARGET_UPDATE = 10
 STARTING_MONEY = 1000
+SELL_PERCENTAGE = 0.1
 
 n_actions = 3
 
@@ -27,7 +28,8 @@ n_actions = 3
 Transition = namedtuple('Transition',
                         ('state', 'action', 'next_state', 'reward'))
 
-simulation = ExchangeSimulation(final_data, STARTING_MONEY, 0, 0)
+simulation = ExchangeSimulation(final_data, STARTING_MONEY,
+                                0, 0, SELL_PERCENTAGE)
 sample_simulation_return = simulation.get_state()
 
 
