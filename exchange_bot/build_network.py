@@ -56,7 +56,7 @@ steps_done = 0
 class ReplayMemory(object):
 
     def __init__(self, capacity):
-        self.memory = deque([],maxlen=capacity)
+        self.memory = deque([], maxlen=capacity)
 
     def push(self, *args):
         """Save a transition"""
@@ -94,24 +94,21 @@ def optimize_model():
     # detailed explanation). This converts batch-array of Transitions
     # to Transition of batch-arrays.
     batch = Transition(*zip(*transitions))
-
     batch_size = len(batch.state)
 
     # Compute a mask of non-final states and concatenate the batch elements
     # (a final state would've been the one after which simulation ended)
     non_final_mask = torch.tensor(tuple(map(lambda s: s is not None,
-                                            batch.next_state)),
-                                  device=device, dtype=torch.bool)
+                                            batch.next_state)), device=device,
+                                  dtype=torch.bool)
     non_final_next_states = torch.cat([s for s in batch.next_state
                                        if s is not None]).view(
         (batch_size, list(batch.state[0].shape)[0],))
 
-    state_batch = torch.cat(batch.state, dim=0).view(
+    state_batch = torch.cat(batch.state).view(
         (batch_size, list(batch.state[0].shape)[0],))
-
     action_batch = torch.cat(batch.action).view(
         (batch_size, list(batch.action[0].shape)[0],))
-
     reward_batch = torch.cat(batch.reward).view(
         (batch_size, list(batch.reward[0].shape)[0],))
 
