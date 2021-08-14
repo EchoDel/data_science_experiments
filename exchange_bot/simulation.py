@@ -95,7 +95,7 @@ class ExchangeSimulation:
             new_usd = self.eur * exchange_rate * \
                 (1 - self.trading_percent_cost)
 
-            self.gain = new_usd - self.sales_usd
+            self.gain += new_usd - self.sales_usd
 
             self.usd = self.usd + new_usd
             self.eur = 0
