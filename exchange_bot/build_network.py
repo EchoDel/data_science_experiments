@@ -34,12 +34,12 @@ sample_simulation_return = simulation.get_state()
 
 
 # Setup the networks
-policy_net = ExchangeBot(input_size=len(sample_simulation_return[1]),
+policy_net = ExchangeBot(input_size=sample_simulation_return[1].shape[1],
                          output_size=n_actions,
                          dropout_percentage=0.3,
                          device=device).to(device)
 
-target_net = ExchangeBot(input_size=len(sample_simulation_return[1]),
+target_net = ExchangeBot(input_size=sample_simulation_return[1].shape[1],
                          output_size=3,
                          dropout_percentage=0.3,
                          device=device).to(device)
@@ -80,7 +80,7 @@ def select_action(state):
             # t.max(1) will return largest column value of each row.
             # second column on max result is index of where max element was
             # found, so we pick action with the larger expected reward.
-            return policy_net(state).max(0)[1].view(1, 1)
+            return policy_net(state).max(1)[1].view(1, 1)
     else:
         return torch.tensor([[random.randrange(n_actions)]], device=device,
                             dtype=torch.long)
@@ -102,15 +102,11 @@ def optimize_model():
                                             batch.next_state)), device=device,
                                   dtype=torch.bool)
     non_final_next_states = torch.cat([s for s in batch.next_state
-                                       if s is not None]).view(
-        (batch_size, list(batch.state[0].shape)[0],))
+                                       if s is not None])
 
-    state_batch = torch.cat(batch.state).view(
-        (batch_size, list(batch.state[0].shape)[0],))
-    action_batch = torch.cat(batch.action).view(
-        (batch_size, list(batch.action[0].shape)[0],))
-    reward_batch = torch.cat(batch.reward).view(
-        (list(batch.reward[0].shape)[0], batch_size,))
+    state_batch = torch.cat(batch.state)
+    action_batch = torch.cat(batch.action)
+    reward_batch = torch.cat(batch.reward)
 
     # Compute Q(s_t, a) - the model computes Q(s_t), then we select the
     # columns of actions taken. These are the actions which would've been taken
@@ -129,7 +125,7 @@ def optimize_model():
 
     # Compute Huber loss
     criterion = nn.SmoothL1Loss()
-    loss = criterion(state_action_values, expected_state_action_values.transpose(0, 1))
+    loss = criterion(state_action_values, expected_state_action_values.unsqueeze(1))
 
     # Optimize the model
     optimizer.zero_grad()

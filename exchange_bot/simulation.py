@@ -70,7 +70,7 @@ class ExchangeSimulation:
             self.done()
 
     def get_state_tensor(self, state):
-        return torch.Tensor(state)
+        return torch.Tensor([state])
 
     def step(self, action):
         '''
