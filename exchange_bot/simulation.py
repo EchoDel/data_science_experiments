@@ -59,7 +59,7 @@ class ExchangeSimulation:
             return True
         elif self.starting_index + 525600 < self.current_index:
             return True
-        return self.usd < self.starting_cash / 4
+        return self.gain < -200
 
     def get_state(self):
         new_data = self.training_data.iloc[self.current_index].to_list()
