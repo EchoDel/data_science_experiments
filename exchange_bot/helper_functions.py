@@ -42,15 +42,17 @@ class ExchangeBot(nn.Module):
 
 
 def plot_durations(episode_durations, episode_reward):
-    plt.figure(2)
-    plt.clf()
+    fig, ax = plt.subplots()
+    fig.subplots_adjust(right=0.75)
+
+    ax2 = ax.twinY()
     durations_t = torch.tensor(episode_durations, dtype=torch.float)
     reward_t = torch.tensor(episode_reward, dtype=torch.float)
     plt.title('Training...')
     plt.xlabel('Episode')
     plt.ylabel('Duration')
-    plt.plot(durations_t.numpy())
-    plt.plot(reward_t.numpy())
+    plt.plot(durations_t.numpy(), ax=ax)
+    plt.plot(reward_t.numpy(), ax=ax2)
     # Take 100 episode averages and plot them too
     if len(durations_t) >= 100:
         means = durations_t.unfold(0, 100, 1).mean(1).view(-1)
