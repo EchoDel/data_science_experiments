@@ -143,7 +143,8 @@ widgets = [
     ' [', progressbar.Timer(), '] ',
     progressbar.Bar(marker=progressbar.RotatingMarker()),
     'Interations:', progressbar.Counter(), '   ',
-    progressbar.Variable('reward', precision=5)
+    progressbar.Variable('reward', precision=5),
+    progressbar.Variable('episodes', precision=2)
 ]
 
 num_episodes = 50
@@ -152,7 +153,8 @@ for i_episode in range(num_episodes):
     simulation.reset()
     _, state, reward, done = simulation.get_state()
     bar = progressbar.ProgressBar(max_value=progressbar.UnknownLength,
-                                  variables={'reward': reward.item() * 1000},
+                                  variables={'episodes': i_episode,
+                                             'reward': reward.item(), },
                                   widgets=widgets)
     for t in count():
         # Select and perform an action
