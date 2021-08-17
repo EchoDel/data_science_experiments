@@ -135,7 +135,7 @@ def optimize_model():
     optimizer.step()
 
 
-memory = ReplayMemory(10000)
+memory = ReplayMemory(1000)
 episode_durations = []
 episode_reward = []
 
