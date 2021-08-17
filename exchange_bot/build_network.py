@@ -27,6 +27,8 @@ SELL_PERCENTAGE = 0.1
 training_graph_location = Path('cache/performance_graphs')
 n_actions = 3
 
+training_graph_location.mkdir(exist_ok=True, parents=True)
+
 simulation = ExchangeSimulation(final_data, STARTING_MONEY,
                                 0, 0, SELL_PERCENTAGE)
 sample_simulation_return = simulation.get_state()
