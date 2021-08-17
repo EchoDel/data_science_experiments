@@ -178,7 +178,7 @@ for i_episode in range(num_episodes):
         if done:
             episode_durations.append(t + 1)
             episode_reward.append(reward.item())
-            #plot_durations(episode_durations, episode_reward)
+            plot_durations(episode_durations, episode_reward)
             break
         bar.update(t)
         bar.update(reward=reward.item())
