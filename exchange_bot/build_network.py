@@ -1,15 +1,17 @@
 import math
-from collections import deque, namedtuple
+from collections import namedtuple
 import random
 from itertools import count
+from pathlib import Path
+
 import progressbar
 
 import torch
-from matplotlib import pyplot as plt
 from torch import optim, nn
 from exchange_bot.prepare_data import final_data
 from exchange_bot.simulation import ExchangeSimulation
-from exchange_bot.helper_functions import ExchangeBot, plot_durations
+from exchange_bot.helper_functions import ExchangeBot, plot_durations, \
+    ReplayMemory, optimize_model
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
@@ -22,11 +24,8 @@ TARGET_UPDATE = 10
 STARTING_MONEY = 1000
 SELL_PERCENTAGE = 0.1
 
+training_graph_location = Path('cache/performance_graphs')
 n_actions = 3
-
-
-Transition = namedtuple('Transition',
-                        ('state', 'action', 'next_state', 'reward'))
 
 simulation = ExchangeSimulation(final_data, STARTING_MONEY,
                                 0, 0, SELL_PERCENTAGE)
@@ -53,22 +52,6 @@ optimizer = optim.RMSprop(policy_net.parameters())
 steps_done = 0
 
 
-class ReplayMemory(object):
-
-    def __init__(self, capacity):
-        self.memory = deque([], maxlen=capacity)
-
-    def push(self, *args):
-        """Save a transition"""
-        self.memory.append(Transition(*args))
-
-    def sample(self, batch_size):
-        return random.sample(self.memory, batch_size)
-
-    def __len__(self):
-        return len(self.memory)
-
-
 def select_action(state):
     global steps_done
     sample = random.random()
@@ -84,55 +67,6 @@ def select_action(state):
     else:
         return torch.tensor([[random.randrange(n_actions)]], device=device,
                             dtype=torch.long)
-
-
-def optimize_model():
-    if len(memory) < BATCH_SIZE:
-        return
-    transitions = memory.sample(BATCH_SIZE)
-    # Transpose the batch (see https://stackoverflow.com/a/19343/3343043 for
-    # detailed explanation). This converts batch-array of Transitions
-    # to Transition of batch-arrays.
-    batch = Transition(*zip(*transitions))
-    batch_size = len(batch.state)
-
-    # Compute a mask of non-final states and concatenate the batch elements
-    # (a final state would've been the one after which simulation ended)
-    non_final_mask = torch.tensor(tuple(map(lambda s: s is not None,
-                                            batch.next_state)), device=device,
-                                  dtype=torch.bool)
-    non_final_next_states = torch.cat([s for s in batch.next_state
-                                       if s is not None])
-
-    state_batch = torch.cat(batch.state)
-    action_batch = torch.cat(batch.action)
-    reward_batch = torch.cat(batch.reward)
-
-    # Compute Q(s_t, a) - the model computes Q(s_t), then we select the
-    # columns of actions taken. These are the actions which would've been taken
-    # for each batch state according to policy_net
-    state_action_values = policy_net(state_batch).gather(1, action_batch)
-
-    # Compute V(s_{t+1}) for all next states.
-    # Expected values of actions for non_final_next_states are computed based
-    # on the "older" target_net; selecting their best reward with max(1)[0].
-    # This is merged based on the mask, such that we'll have either the expected
-    # state value or 0 in case the state was final.
-    next_state_values = torch.zeros(BATCH_SIZE, device=device)
-    next_state_values[non_final_mask] = target_net(non_final_next_states).max(1)[0].detach()
-    # Compute the expected Q values
-    expected_state_action_values = (next_state_values * GAMMA) + reward_batch
-
-    # Compute Huber loss
-    criterion = nn.SmoothL1Loss()
-    loss = criterion(state_action_values, expected_state_action_values.unsqueeze(1))
-
-    # Optimize the model
-    optimizer.zero_grad()
-    loss.backward()
-    for param in policy_net.parameters():
-        param.grad.data.clamp_(-1, 1)
-    optimizer.step()
 
 
 memory = ReplayMemory(1000)
@@ -174,11 +108,13 @@ for i_episode in range(num_episodes):
         # Move to the next state
         state = next_state
         # Perform one step of the optimization (on the policy network)
-        optimize_model()
+        optimize_model(memory, BATCH_SIZE, device, GAMMA, optimizer,
+                       policy_net, target_net)
         if done:
             episode_durations.append(t + 1)
             episode_reward.append(reward.item())
-            plot_durations(episode_durations, episode_reward)
+            plot_durations(episode_durations, episode_reward,
+                           training_graph_location)
             break
         bar.update(t, reward=reward.item())
     # Update the target network, copying all weights and biases in DQN
