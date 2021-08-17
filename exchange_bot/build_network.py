@@ -180,8 +180,7 @@ for i_episode in range(num_episodes):
             episode_reward.append(reward.item())
             plot_durations(episode_durations, episode_reward)
             break
-        bar.update(t)
-        bar.update(reward=reward.item())
+        bar.update(t, reward=reward.item())
     # Update the target network, copying all weights and biases in DQN
     if i_episode % TARGET_UPDATE == 0:
         target_net.load_state_dict(policy_net.state_dict())
