@@ -45,14 +45,14 @@ def plot_durations(episode_durations, episode_reward):
     fig, ax = plt.subplots()
     fig.subplots_adjust(right=0.75)
 
-    ax2 = ax.twinY()
+    ax2 = ax.twinx()
     durations_t = torch.tensor(episode_durations, dtype=torch.float)
     reward_t = torch.tensor(episode_reward, dtype=torch.float)
     plt.title('Training...')
     plt.xlabel('Episode')
     plt.ylabel('Duration')
-    plt.plot(durations_t.numpy(), ax=ax)
-    plt.plot(reward_t.numpy(), ax=ax2)
+    ax.plot(durations_t.numpy())
+    ax2.plot(reward_t.numpy(), c='y')
     # Take 100 episode averages and plot them too
     if len(durations_t) >= 100:
         means = durations_t.unfold(0, 100, 1).mean(1).view(-1)
