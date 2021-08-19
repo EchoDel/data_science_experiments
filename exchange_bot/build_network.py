@@ -1,5 +1,4 @@
 import math
-from collections import namedtuple
 import random
 from itertools import count
 from pathlib import Path
@@ -7,7 +6,7 @@ from pathlib import Path
 import progressbar
 
 import torch
-from torch import optim, nn
+from torch import optim
 from exchange_bot.prepare_data import final_data
 from exchange_bot.simulation import ExchangeSimulation
 from exchange_bot.helper_functions import ExchangeBot, plot_durations, \
