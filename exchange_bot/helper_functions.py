@@ -52,18 +52,18 @@ def plot_durations(episode_durations, episode_reward, training_graph_location):
     ax2 = ax.twinx()
     durations_t = torch.tensor(episode_durations, dtype=torch.float)
     reward_t = torch.tensor(episode_reward, dtype=torch.float)
-    fig.title('Training...')
-    fig.xlabel('Episode')
-    fig.ylabel('Duration')
+    ax.title.set_text('Training...')
+    ax.set_xlabel('Episode')
+    ax.set_ylabel('Duration')
     ax.plot(durations_t.numpy())
     ax2.plot(reward_t.numpy(), c='y')
     # Take 100 episode averages and plot them too
     if len(durations_t) >= 100:
         means = durations_t.unfold(0, 100, 1).mean(1).view(-1)
         means = torch.cat((torch.zeros(99), means))
-        plt.plot(means.numpy())
+        ax.plot(means.numpy())
 
-    fig.savefig(training_graph_location / f'training_{len(x)}')
+    fig.savefig(training_graph_location / f'training_{len(durations_t)}')
 
 
 Transition = namedtuple('Transition',
