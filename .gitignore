@@ -3,3 +3,7 @@
 *.pth
 create_music/linear_model/outputs/lofi/*
 /cache/*
+
+# Lukes images
+/dead_fellas_rooms/base_images/
+/dead_fellas_rooms/outputs/
