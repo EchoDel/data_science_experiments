@@ -53,6 +53,7 @@ else:
 transformations = Compose([
     transforms.MelSpectrogram(sample_rate, n_fft=2048, hop_length=512),
     helper_functions.transform_log(),
+    helper_functions.transform_remove_inf(),
     transforms.FrequencyMasking(freq_mask_param=20),
     transforms.TimeMasking(time_mask_param=80),
     vision_transforms.RandomHorizontalFlip(),

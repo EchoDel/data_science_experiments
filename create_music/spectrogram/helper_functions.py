@@ -19,6 +19,14 @@ def transform_log():
     return log
 
 
+def transform_remove_inf():
+    def remove_inf(tensor):
+        tensor[tensor.isinf()] = 0
+        return tensor
+
+    return remove_inf
+
+
 class AddGaussianNoise(object):
     def __init__(self, mean=0., std=1.):
         self.std = std
@@ -82,6 +90,7 @@ class SongIngestion(torch.utils.data.Dataset):
         sample = sample.reshape((1, self.sample_length))
         sample = torch.from_numpy(sample)
         transformed_sample = self.transformations(sample)
+
         return transformed_sample, sample
 
     def __getitem__(self, index):
@@ -144,7 +153,7 @@ class SoundGenerator(nn.Module):
                                stride=conv_strides[4],
                                padding=conv_decode_padding[0],
                                output_padding=1),
-            nn.LeakyReLU(inplace=True),
+            nn.ReLU(inplace=True),
             nn.Dropout(conv_decode_dropout[0]),
             # nn.BatchNorm2d(conv_channels[3]),
             nn.ConvTranspose2d(conv_channels[3], conv_channels[2],
@@ -152,21 +161,21 @@ class SoundGenerator(nn.Module):
                                stride=conv_strides[3],
                                padding=conv_decode_padding[1],
                                output_padding=1),
-            nn.LeakyReLU(inplace=True),
+            nn.ReLU(inplace=True),
             nn.Dropout(conv_decode_dropout[1]),
             nn.ConvTranspose2d(conv_channels[2], conv_channels[1],
                                kernel_size=conv_kernels_size[2],
                                stride=conv_strides[2],
                                padding=conv_decode_padding[2],
                                output_padding=1),
-            nn.LeakyReLU(inplace=True),
+            nn.ReLU(inplace=True),
             nn.Dropout(conv_decode_dropout[2]),
             nn.ConvTranspose2d(conv_channels[1], conv_channels[0],
                                kernel_size=conv_kernels_size[1],
                                stride=conv_strides[1],
                                padding=conv_decode_padding[3],
                                output_padding=1),
-            nn.LeakyReLU(inplace=True),
+            nn.ReLU(inplace=True),
             nn.Dropout(conv_decode_dropout[3]),
             nn.ConvTranspose2d(conv_channels[0], 1,
                                kernel_size=(5, 3),
