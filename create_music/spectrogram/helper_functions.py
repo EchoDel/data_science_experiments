@@ -44,8 +44,8 @@ def load_sound_file(path: Path, sr):
 
 
 class SongIngestion(torch.utils.data.Dataset):
-    def __init__(self, metadata, sample_length: int, transformations, sr,
-                 n_mels, seed=1994):
+    def __init__(self, metadata, sample_length: int, transformations,
+                 sr: int, n_mels: int, sound_files: dict, seed=1994):
         super(SongIngestion).__init__()
         self.metadata = metadata
         self.n_mels = n_mels
@@ -56,7 +56,7 @@ class SongIngestion(torch.utils.data.Dataset):
 
         self.start = 0
         self.end = self.metadata.shape[0]
-        self.sound_files = {}
+        self.sound_files = sound_files
         self.sample_length = sr * sample_length
         self.transformations = transformations
         self.sr = sr

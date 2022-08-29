@@ -1,4 +1,5 @@
 import json
+import pickle
 from pathlib import Path
 
 from create_music.spectrogram import helper_functions
@@ -11,11 +12,11 @@ from torchvision.transforms import transforms as vision_transforms
 from fma import utils as fmautils
 from tqdm import tqdm
 
-fma_set = 'small'
+fma_set = 'medium'
 genre = 'Rock'
 # load the metadata for the fma dataset
 fma_base = Path('fma/data/fma_metadata')
-AUDIO_DIR = Path('fma/data/fma_' + fma_set)
+AUDIO_DIR = Path('../data/fma_' + fma_set)
 folder = fma_base / 'tracks.csv'
 tracks = fmautils.load(fma_base / 'tracks.csv')
 fma_subset = tracks[tracks['set', 'subset'] <= fma_set]
@@ -24,7 +25,7 @@ fma_subset[('path', '')] = fma_subset.index.map(
     lambda x: Path(fmautils.get_audio_path(AUDIO_DIR, x)))
 
 # fma_subset_sample = fma_subset[fma_subset[('track', 'genre_top')] == genre]
-fma_subset = fma_subset.sample(128, random_state=10)
+fma_subset = fma_subset.sample(3200, random_state=10)
 
 device = 'cuda'
 sample_length = 20
@@ -33,13 +34,20 @@ metadata_file = 'rock_spectrogram_tiny_1'
 config_file = Path(f'models/{metadata_file}/metadata_{model_name}.json')
 loader_path = Path(f'models/{metadata_file}/loader_{model_name}.pth')
 epochs_to_run = 16000
-save_every = 16
+save_every = 1000
 sample_rate = 22050
 window_length = 2048
 maximum_sample_location = 4096
 y_size = 512
 n_mels = 512
 batch_size = 32
+sound_file_state_location = AUDIO_DIR / 'state_dict.p'
+
+if sound_file_state_location.exists():
+    with open(sound_file_state_location, 'rb') as f:
+        sound_files = pickle.load(f)
+else:
+    sound_files = {}
 
 
 transformations = Compose([
@@ -57,6 +65,7 @@ train_set = helper_functions.SongIngestion(fma_subset,
                                            sample_length=sample_length,
                                            transformations=transformations,
                                            sr=sample_rate,
+                                           sound_files=sound_files,
                                            n_mels=n_mels)
 
 train_loader = torch.utils.data.DataLoader(train_set, batch_size=batch_size, num_workers=0)
@@ -88,7 +97,7 @@ steps = 0
 running_loss = 0
 max_epoch = epoch + epochs_to_run
 
-while epoch < max_epoch:
+for epoch in range(epoch, max_epoch):
     running_loss = 0
     model.train()
     for results, waveform in tqdm(train_loader):
@@ -111,7 +120,9 @@ while epoch < max_epoch:
     }
 
     if epoch == 0:
-        epoch += 1
+        with open(sound_file_state_location, 'wb') as f:
+            pickle.dump(sound_files, f)
+
         continue
 
     if (epoch % save_every == save_every) | \
@@ -127,5 +138,3 @@ while epoch < max_epoch:
 
         with open(config_file, 'w') as outfile:
             json.dump(metadata, outfile)
-
-    epoch += 1
