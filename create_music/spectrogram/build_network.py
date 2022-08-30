@@ -34,7 +34,7 @@ metadata_file = 'rock_spectrogram_tiny_1'
 config_file = Path(f'models/{metadata_file}/metadata_{model_name}.json')
 loader_path = Path(f'models/{metadata_file}/loader_{model_name}.pth')
 epochs_to_run = 16000
-save_every = 1000
+save_every = 500
 sample_rate = 22050
 window_length = 2048
 maximum_sample_location = 4096
@@ -126,7 +126,7 @@ for epoch in range(epoch, max_epoch):
 
         continue
 
-    if (epoch % save_every == save_every) | \
+    if (epoch % save_every == 0) | \
             (metadata[epoch - 1]['running_loss'] - metadata[epoch]['running_loss'] > metadata[epoch][
                 'running_loss'] / 5):
         print(f'Writing model {epoch}')
