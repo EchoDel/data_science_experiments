@@ -27,14 +27,14 @@ fma_subset[('path', '')] = fma_subset.index.map(
 # fma_subset_sample = fma_subset[fma_subset[('track', 'genre_top')] == genre]
 fma_subset = fma_subset.sample(3200, random_state=10)
 
-device = 'cuda'
+device = 'cpu'
 sample_length = 20
 model_name = f'{fma_set}_{genre}'
-metadata_file = 'rock_spectrogram_tiny_1'
+metadata_file = 'rock_spectrogram_new'
 config_file = Path(f'models/{metadata_file}/metadata_{model_name}.json')
 loader_path = Path(f'models/{metadata_file}/loader_{model_name}.pth')
 epochs_to_run = 16000
-save_every = 500
+save_every = 25
 sample_rate = 22050
 window_length = 2048
 maximum_sample_location = 4096
@@ -51,7 +51,6 @@ else:
 
 
 transformations = Compose([
-    transforms.MelSpectrogram(sample_rate, n_fft=2048, hop_length=512),
     helper_functions.transform_log(),
     helper_functions.transform_remove_inf(),
     transforms.FrequencyMasking(freq_mask_param=20),
@@ -83,7 +82,6 @@ if config_file.exists():
             epoch = int(key)
 
     model = torch.load(model_path)
-    train_loader = torch.load(loader_path)
 
 else:
     model = helper_functions.SoundGenerator()
@@ -133,9 +131,6 @@ for epoch in range(epoch, max_epoch):
         Path(save_path).parent.mkdir(exist_ok=True, parents=True)
         metadata[epoch]['path'] = save_path
         torch.save(model, save_path)
-
-        if not loader_path.exists():
-            torch.save(train_loader, loader_path)
 
         with open(config_file, 'w') as outfile:
             json.dump(metadata, outfile)

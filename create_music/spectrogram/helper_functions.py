@@ -1,10 +1,13 @@
 from pathlib import Path
+from typing import Union, Type, Optional, Callable
 
 import numpy as np
 import random as rand
 import librosa
 import torch
 import torch.nn as nn
+from torch import Tensor
+from torchvision.models.resnet import BasicBlock, Bottleneck, conv1x1
 
 
 def transform_clamp(minimum, maximum):
@@ -87,7 +90,8 @@ class SongIngestion(torch.utils.data.Dataset):
             new_sample[sample_start:(sample_start + len(sample))] = sample
             sample = new_sample
 
-        sample = sample.reshape((1, self.sample_length))
+        sample = librosa.feature.melspectrogram(y=sample)
+        sample = sample.reshape((1, sample.shape[0], sample.shape[1]))
         sample = torch.from_numpy(sample)
         transformed_sample = self.transformations(sample)
 
@@ -101,96 +105,245 @@ class SongIngestion(torch.utils.data.Dataset):
         return self.end
 
 
+def conv_transpose3x3(in_planes: int, out_planes: int, stride: int = 1, groups: int = 1, dilation: int = 1) -> nn.Conv2d:
+    """3x3 convolution with padding"""
+    return nn.ConvTranspose2d(
+        in_planes,
+        out_planes,
+        kernel_size=3,
+        stride=stride,
+        padding=dilation,
+        groups=groups,
+        bias=False,
+        dilation=dilation,
+    )
+
+
+def conv_transpose1x1(in_planes: int, out_planes: int, stride: int = 1) -> nn.Conv2d:
+    """1x1 convolution"""
+    return nn.ConvTranspose2d(in_planes, out_planes, kernel_size=1, stride=stride, bias=False)
+
+
+class BasicBlockTranspose(nn.Module):
+    expansion: int = 1
+
+    def __init__(
+        self,
+        inplanes: int,
+        planes: int,
+        stride: int = 1,
+        downsample: Optional[nn.Module] = None,
+        groups: int = 1,
+        base_width: int = 64,
+        dilation: int = 1,
+        norm_layer: Optional[Callable[..., nn.Module]] = None,
+    ) -> None:
+        super().__init__()
+        if norm_layer is None:
+            norm_layer = nn.BatchNorm2d
+        if groups != 1 or base_width != 64:
+            raise ValueError("BasicBlock only supports groups=1 and base_width=64")
+        if dilation > 1:
+            raise NotImplementedError("Dilation > 1 not supported in BasicBlock")
+        # Both self.conv1 and self.downsample layers downsample the input when stride != 1
+        self.conv1 = conv_transpose3x3(inplanes, planes, stride)
+        self.bn1 = norm_layer(planes)
+        self.relu = nn.ReLU(inplace=True)
+        self.conv2 = conv_transpose3x3(planes, planes)
+        self.bn2 = norm_layer(planes)
+        self.downsample = downsample
+        self.stride = stride
+
+    def forward(self, x: Tensor) -> Tensor:
+        identity = x
+
+        out = self.conv1(x)
+        out = self.bn1(out)
+        out = self.relu(out)
+
+        out = self.conv2(out)
+        out = self.bn2(out)
+
+        if self.downsample is not None:
+            identity = self.downsample(x)
+
+        out += identity
+        out = self.relu(out)
+
+        return out
+
+
+class BottleneckTranspose(nn.Module):
+    expansion: int = 4
+
+    def __init__(
+        self,
+        inplanes: int,
+        planes: int,
+        stride: int = 1,
+        downsample: Optional[nn.Module] = None,
+        groups: int = 1,
+        base_width: int = 64,
+        dilation: int = 1,
+        norm_layer: Optional[Callable[..., nn.Module]] = None,
+    ) -> None:
+        super().__init__()
+        if norm_layer is None:
+            norm_layer = nn.BatchNorm2d
+        width = int(planes * (base_width / 64.0)) * groups
+        # Both self.conv2 and self.downsample layers downsample the input when stride != 1
+        self.conv1 = conv_transpose1x1(inplanes, width)
+        self.bn1 = norm_layer(width)
+        self.conv2 = conv_transpose3x3(width, width, stride, groups, dilation)
+        self.bn2 = norm_layer(width)
+        self.conv3 = conv_transpose1x1(width, planes * self.expansion)
+        self.bn3 = norm_layer(planes * self.expansion)
+        self.relu = nn.Tanh(inplace=True)
+        self.downsample = downsample
+        self.stride = stride
+
+    def forward(self, x: Tensor) -> Tensor:
+        identity = x
+
+        out = self.conv1(x)
+        out = self.bn1(out)
+        out = self.relu(out)
+
+        out = self.conv2(out)
+        out = self.bn2(out)
+        out = self.relu(out)
+
+        out = self.conv3(out)
+        out = self.bn3(out)
+
+        if self.downsample is not None:
+            identity = self.downsample(x)
+
+        out += identity
+        out = self.relu(out)
+
+        return out
+
+
+
+
+
 class SoundGenerator(nn.Module):
     def __init__(self) -> None:
         super(SoundGenerator, self).__init__()
-
-        conv_channels = [16, 64, 128, 256, 512]
-        conv_kernels_size = [5, 5, 5, 5, 5]
-        conv_strides = [2, 2, 2, 2, 2]
-        conv_encode_padding = [2, 2, 2, 2, 2]
-        conv_decode_padding = [2, 2, 2, 2, 2]
-        conv_encode_dropout = [0.2, 0, 0.2, 0.2, 0]
-        conv_decode_dropout = [0.2, 0, 0.2, 0.2, 0]
+        self.inplanes = 4
+        self._norm_layer = nn.BatchNorm2d
+        self.dilation = 1
+        self.groups = 1
+        self.base_width = 64
 
         self.encoder = nn.Sequential(
-            nn.Conv2d(1, conv_channels[0],
-                      kernel_size=conv_kernels_size[0],
-                      stride=conv_strides[0],
-                      padding=conv_encode_padding[0]),
+            nn.Conv2d(1, self.inplanes, kernel_size=5, stride=2, padding=3, bias=False),
+            nn.BatchNorm2d(self.inplanes),
             nn.ReLU(inplace=True),
-            nn.Dropout(conv_encode_dropout[0]),
-            nn.Conv2d(conv_channels[0], conv_channels[1],
-                      kernel_size=conv_kernels_size[1],
-                      stride=conv_strides[1],
-                      padding=conv_encode_padding[1]),
-            nn.ReLU(inplace=True),
-            # nn.BatchNorm2d(conv_channels[1]),
-            nn.Dropout(conv_encode_dropout[1]),
-            nn.Conv2d(conv_channels[1], conv_channels[2],
-                      kernel_size=conv_kernels_size[2],
-                      stride=conv_strides[2],
-                      padding=conv_encode_padding[2]),
-            nn.ReLU(inplace=True),
-            nn.Dropout(conv_encode_dropout[2]),
-            nn.Conv2d(conv_channels[2], conv_channels[3],
-                      kernel_size=conv_kernels_size[3],
-                      stride=conv_strides[3],
-                      padding=conv_encode_padding[3]),
-            nn.ReLU(inplace=True),
-            nn.Dropout(conv_encode_dropout[3]),
-            # nn.BatchNorm2d(conv_channels[3]),
-            nn.Conv2d(conv_channels[3], conv_channels[4],
-                      kernel_size=conv_kernels_size[4],
-                      stride=conv_strides[4],
-                      padding=conv_encode_padding[4]),
-            nn.ReLU(inplace=True),
+
+            self._make_layer_encode(Bottleneck, 32, 2, stride=2),
+            self._make_layer_encode(Bottleneck, 64, 2, stride=2),
+            self._make_layer_encode(BasicBlock, 256, 2, stride=2),
+            self._make_layer_encode(Bottleneck, 256, 2, stride=2),
+            self._make_layer_encode(BasicBlock, 512, 2, stride=2),
+            self._make_layer_encode(BasicBlock, 512, 2, stride=2),
+        )
+
+        self.encode_flat = nn.Sequential(
+            nn.Linear(512*2*7, 2048),
+            nn.ReLU()
+        )
+
+        self.decode_flat = nn.Sequential(
+            nn.Linear(2048, 512*2*7),
+            nn.ReLU()
         )
 
         self.decoder = nn.Sequential(
-            nn.ConvTranspose2d(conv_channels[4], conv_channels[3],
-                               kernel_size=conv_kernels_size[4],
-                               stride=conv_strides[4],
-                               padding=conv_decode_padding[0],
-                               output_padding=1),
-            nn.ReLU(inplace=True),
-            nn.Dropout(conv_decode_dropout[0]),
-            # nn.BatchNorm2d(conv_channels[3]),
-            nn.ConvTranspose2d(conv_channels[3], conv_channels[2],
-                               kernel_size=conv_kernels_size[3],
-                               stride=conv_strides[3],
-                               padding=conv_decode_padding[1],
-                               output_padding=1),
-            nn.ReLU(inplace=True),
-            nn.Dropout(conv_decode_dropout[1]),
-            nn.ConvTranspose2d(conv_channels[2], conv_channels[1],
-                               kernel_size=conv_kernels_size[2],
-                               stride=conv_strides[2],
-                               padding=conv_decode_padding[2],
-                               output_padding=1),
-            nn.ReLU(inplace=True),
-            nn.Dropout(conv_decode_dropout[2]),
-            nn.ConvTranspose2d(conv_channels[1], conv_channels[0],
-                               kernel_size=conv_kernels_size[1],
-                               stride=conv_strides[1],
-                               padding=conv_decode_padding[3],
-                               output_padding=1),
-            nn.ReLU(inplace=True),
-            nn.Dropout(conv_decode_dropout[3]),
-            nn.ConvTranspose2d(conv_channels[0], 1,
-                               kernel_size=(5, 3),
-                               stride=conv_strides[0],
-                               padding=conv_decode_padding[4],
-                               output_padding=1),
-            # nn.Sigmoid(),
+            self._make_layer_decode(BasicBlockTranspose, 512, 2, stride=2),
+            self._make_layer_decode(BottleneckTranspose, 256, 2, stride=2),
+            self._make_layer_decode(BasicBlockTranspose, 256, 2, stride=2),
+            self._make_layer_decode(BottleneckTranspose, 64, 2, stride=2),
+            self._make_layer_decode(BasicBlockTranspose, 32, 2, stride=2),
+            self._make_layer_decode(BasicBlockTranspose, 16, 2, stride=2),
+            self._make_layer_decode(BasicBlockTranspose, 8, 2, stride=2),
+            self._make_layer_decode(BasicBlockTranspose, 4, 2, stride=2),
+            nn.Conv2d(4, 1, kernel_size=(3, 26), stride=(2, 1), dilation=(1, 27))
         )
+
+    def _make_layer_encode(self, block: Type[Union[BasicBlock, Bottleneck]],
+                           planes: int, blocks: int, stride: int = 1, dilate: bool = False,) -> nn.Sequential:
+        norm_layer = self._norm_layer
+        downsample = None
+        previous_dilation = self.dilation
+        if dilate:
+            self.dilation *= stride
+            stride = 1
+        if stride != 1 or self.inplanes != planes * block.expansion:
+            downsample = nn.Sequential(
+                conv1x1(self.inplanes, planes * block.expansion, stride),
+                norm_layer(planes * block.expansion),
+            )
+
+        layers = [block(self.inplanes, planes, stride, downsample, self.groups, self.base_width, previous_dilation, norm_layer)]
+
+        self.inplanes = planes * block.expansion
+        for _ in range(1, blocks):
+            layers.append(
+                block(
+                    self.inplanes,
+                    planes,
+                    groups=self.groups,
+                    base_width=self.base_width,
+                    dilation=self.dilation,
+                    norm_layer=norm_layer,
+                )
+            )
+
+        return nn.Sequential(*layers)
+
+    def _make_layer_decode(self, block: Type[Union[BasicBlock, Bottleneck]],
+                           planes: int, blocks: int, stride: int = 1, dilate: bool = False,) -> nn.Sequential:
+        norm_layer = self._norm_layer
+        upsample = None
+        previous_dilation = self.dilation
+        if dilate:
+            self.dilation *= stride
+            stride = 1
+        if stride != 1 or self.inplanes != planes * block.expansion:
+            upsample = nn.Sequential(
+                conv_transpose1x1(self.inplanes, planes * block.expansion, stride),
+                norm_layer(planes * block.expansion),
+            )
+
+        layers = [block(self.inplanes, planes, stride, upsample, self.groups, self.base_width, previous_dilation, norm_layer)]
+
+        self.inplanes = planes * block.expansion
+        for _ in range(1, blocks):
+            layers.append(
+                block(
+                    self.inplanes,
+                    planes,
+                    groups=self.groups,
+                    base_width=self.base_width,
+                    dilation=self.dilation,
+                    norm_layer=norm_layer,
+                )
+            )
+
+        return nn.Sequential(*layers)
 
     def encode(self, sample: torch.Tensor) -> torch.Tensor:
         x = self.encoder(sample)
+        x = torch.flatten(x, 1)
+        x = self.encode_flat(x)
         return x
 
     def decode(self, sample: torch.Tensor) -> torch.Tensor:
-        x = self.decoder(sample)
+        x = self.decode_flat(sample)
+        x = x.reshape((x.shape[0], 512, 2, 7))
+        x = self.decoder(x)
         return x
 
     def forward(self, sample: torch.Tensor) -> torch.Tensor:
